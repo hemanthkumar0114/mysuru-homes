@@ -56,6 +56,10 @@ public class SecurityConfig {
                                         .permitAll()
                                         .requestMatchers("/actuator/**")
                                         .permitAll()
+                                        // Otherwise Boot's error-page forward re-runs the chain
+                                        // anonymously and clobbers a real 403 with a 401.
+                                        .requestMatchers("/error")
+                                        .permitAll()
                                         .requestMatchers(HttpMethod.GET, "/api/listings/**")
                                         .permitAll()
                                         .requestMatchers("/api/admin/**")
