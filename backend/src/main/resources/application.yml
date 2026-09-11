@@ -3,9 +3,11 @@ spring:
     name: api
 
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:real_estate}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    username: ${DB_USER:root}
-    password: ${DB_PASSWORD:}
+    # Defaults match the dedicated app user created by backend/sql/setup.sql -
+    # run that once in MySQL Workbench, no root password needed here.
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:real_estate}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: ${DB_USER:realestate_app}
+    password: ${DB_PASSWORD:REDACTED-OLD-DEV-PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
