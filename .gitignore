@@ -1,0 +1,22 @@
+# Backend (Maven / Spring Boot)
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# Frontend (Vite / Node)
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env files (never commit real secrets)
+.env
+.env.local
+*.env
