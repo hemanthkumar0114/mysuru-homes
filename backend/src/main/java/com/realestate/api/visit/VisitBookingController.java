@@ -1,4 +1,4 @@
-package com.realestate.api.enquiry;
+package com.realestate.api.visit;
 
 import com.realestate.api.listing.Listing;
 import com.realestate.api.listing.ListingNotFoundException;
@@ -7,6 +7,8 @@ import com.realestate.api.security.AuthenticatedUser;
 import com.realestate.api.user.User;
 import com.realestate.api.user.UserRepository;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,19 +19,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class EnquiryController {
+public class VisitBookingController {
 
-    private final EnquiryRepository enquiryRepository;
+    private final VisitBookingRepository visitBookingRepository;
     private final ListingRepository listingRepository;
     private final UserRepository userRepository;
 
-    public record CreateEnquiryRequest(@NotBlank String listingId) {}
+    public record CreateVisitRequest(@NotBlank String listingId, @NotNull Instant slotTime) {}
 
-    /** Any logged-in user can enquire - the tenant is taken from the JWT, not the request body. */
-    @PostMapping("/api/enquiries")
+    @PostMapping("/api/visits")
     @ResponseStatus(HttpStatus.CREATED)
     public void create(
-            @RequestBody CreateEnquiryRequest request, @AuthenticationPrincipal AuthenticatedUser principal) {
+            @RequestBody CreateVisitRequest request, @AuthenticationPrincipal AuthenticatedUser principal) {
         Listing listing =
                 listingRepository
                         .findById(request.listingId())
@@ -39,6 +40,7 @@ public class EnquiryController {
                         .findById(principal.id())
                         .orElseThrow(() -> new IllegalStateException("Authenticated user vanished: " + principal.id()));
 
-        enquiryRepository.save(Enquiry.builder().listing(listing).tenant(tenant).build());
+        visitBookingRepository.save(
+                VisitBooking.builder().listing(listing).tenant(tenant).slotTime(request.slotTime()).build());
     }
 }

@@ -1,15 +1,19 @@
+# Optional: only needed if you don't already have a local MySQL server
+# running (this project detected a native MySQL 8.0 install + Workbench
+# on this machine, so you likely don't need this). If you do use it,
+# point application.yml's DB_HOST at "localhost" as usual - the container
+# publishes the standard port 3306.
 services:
   db:
-    image: postgis/postgis:16-3.4
+    image: mysql:8.4
     restart: unless-stopped
     environment:
-      POSTGRES_DB: real_estate
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      MYSQL_DATABASE: real_estate
+      MYSQL_ROOT_PASSWORD: root
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - db_data:/var/lib/mysql
 
 volumes:
   db_data:

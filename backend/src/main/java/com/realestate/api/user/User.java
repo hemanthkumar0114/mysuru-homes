@@ -15,6 +15,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Login is email + password for now (see AuthController). Phone is kept
+ * as an optional contact field - phone-OTP login from the original GTM
+ * plan needs a paid SMS provider (MSG91/Twilio) and can replace this
+ * later without changing the rest of the schema.
+ */
 @Entity
 @Table(name = "users")
 @Getter
@@ -29,9 +35,15 @@ public class User {
     private String id;
 
     @Column(nullable = false, unique = true)
-    private String phone;
+    private String email;
 
+    @Column(nullable = false)
+    private String passwordHash;
+
+    @Column(nullable = false)
     private String name;
+
+    private String phone;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

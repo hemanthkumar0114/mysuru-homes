@@ -11,6 +11,8 @@ public interface ListingRepository extends JpaRepository<Listing, String> {
 
     List<Listing> findByStatus(ListingStatus status);
 
+    List<Listing> findByOwnerIdOrderByCreatedAtDesc(String ownerId);
+
     /**
      * Simple Haversine radius search - plain lat/lng columns, no PostGIS yet.
      * Fine for the single-corridor Phase 1 volume (a few hundred listings);
