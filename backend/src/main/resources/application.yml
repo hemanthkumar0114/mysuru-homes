@@ -7,7 +7,7 @@ spring:
     # run that once in MySQL Workbench, no root password needed here.
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:real_estate}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: ${DB_USER:realestate_app}
-    password: ${DB_PASSWORD:REDACTED-OLD-DEV-PASSWORD}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -41,7 +41,7 @@ app:
   # leave on - the seeder checks the table is empty before inserting anything.
   seed-demo-data: true
   jwt:
-    # Dev-only default secret. Override with the JWT_SECRET env var for
-    # anything beyond your own machine.
-    secret: ${JWT_SECRET:REDACTED-OLD-DEV-JWT-SECRET-PLACEHOLDER}
+    # Must be set via the JWT_SECRET env var - no default, so the app
+    # refuses to start with a known/guessable secret.
+    secret: ${JWT_SECRET}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
