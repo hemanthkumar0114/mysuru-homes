@@ -1,5 +1,11 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+
+// NavLink is Link plus "am I the current page?". We use it to highlight the
+// active item; `end` on "/" stops Browse being highlighted on every page.
+function navClass({ isActive }) {
+  return isActive ? 'nav-link active' : 'nav-link'
+}
 
 export default function Navbar() {
   const { user, isLoggedIn, logout } = useAuth()
@@ -12,38 +18,52 @@ export default function Navbar() {
 
   return (
     <header className="navbar">
-      <div className="container row-between">
+      <div className="container navbar-inner">
         <Link to="/" className="brand">
+          <span className="brand-mark">M</span>
           Mysuru Homes
         </Link>
 
         <nav>
-          <Link to="/">Browse</Link>
+          <NavLink to="/" end className={navClass}>
+            Browse
+          </NavLink>
 
           {isLoggedIn && user.role === 'OWNER' && (
             <>
-              <Link to="/post-property">Post a property</Link>
-              <Link to="/my-listings">My listings</Link>
+              <NavLink to="/post-property" className={navClass}>
+                Post a property
+              </NavLink>
+              <NavLink to="/my-listings" className={navClass}>
+                My listings
+              </NavLink>
             </>
           )}
 
           {isLoggedIn && user.role === 'ADMIN' && (
-            <Link to="/admin">Admin review</Link>
+            <NavLink to="/admin" className={navClass}>
+              Admin review
+            </NavLink>
           )}
 
           {isLoggedIn ? (
             <>
-              <span className="user-badge">
-                {user.name} ({user.role.toLowerCase()})
+              <span className="user-chip">
+                {user.name}
+                <span className="role-pill">{user.role.toLowerCase()}</span>
               </span>
-              <button type="button" onClick={handleLogout}>
+              <button type="button" className="btn btn-sm" onClick={handleLogout}>
                 Log out
               </button>
             </>
           ) : (
             <>
-              <Link to="/login">Log in</Link>
-              <Link to="/register">Sign up</Link>
+              <NavLink to="/login" className={navClass}>
+                Log in
+              </NavLink>
+              <Link to="/register" className="btn btn-primary btn-sm">
+                Sign up
+              </Link>
             </>
           )}
         </nav>

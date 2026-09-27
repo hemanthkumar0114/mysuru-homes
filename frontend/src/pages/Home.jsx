@@ -18,17 +18,18 @@ export default function Home() {
   }, [locality])
 
   return (
-    <div className="container page">
-      <div className="center-text">
-        <h1>Verified rentals in Mysuru, owner-direct.</h1>
-        <p className="subtitle" style={{ margin: '0 auto' }}>
-          Every listing is physically visited and photographed by our team.
-          No broker spam.
-        </p>
-      </div>
+    <>
+      <section className="hero">
+        <div className="container center-text">
+          <h1>Verified rentals in Mysuru, owner-direct.</h1>
+          <p className="subtitle" style={{ margin: '0 auto' }}>
+            Every listing is physically visited and photographed by our team.
+            No broker spam.
+          </p>
+        </div>
+      </section>
 
-      <div className="spacer-lg" />
-
+      <div className="container page">
       <div className="field" style={{ maxWidth: 320, margin: '0 auto 32px' }}>
         <label htmlFor="locality">Filter by locality</label>
         <input
@@ -58,6 +59,7 @@ export default function Home() {
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </>
   )
 }
