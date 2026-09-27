@@ -4,10 +4,13 @@ import com.realestate.api.security.AuthenticatedUser;
 import com.realestate.api.user.User;
 import com.realestate.api.user.UserRepository;
 import jakarta.validation.Valid;
+import java.math.BigDecimal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.StringUtils;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,23 +27,40 @@ public class ListingController {
     private final UserRepository userRepository;
 
     /**
-     * GET /api/listings                         -> all live listings
-     * GET /api/listings?locality=Vijayanagar     -> filtered by locality
-     * GET /api/listings?lat=..&lng=..&radiusKm=5 -> geo-radius search
+     * GET /api/listings                          -> all live listings, newest first
+     * GET /api/listings?locality=Vijayanagar      -> only that locality
+     * GET /api/listings?type=PG                   -> RENT or PG
+     * GET /api/listings?minRent=8000&maxRent=15000 -> rent range (either end optional)
+     * GET /api/listings?bedrooms=2                -> at least 2 bedrooms
+     * GET /api/listings?lat=..&lng=..&radiusKm=5  -> geo-radius search
+     * Every filter is optional and they can be combined.
      */
     @GetMapping("/api/listings")
     public List<ListingSummary> search(
             @RequestParam(required = false) String locality,
+            @RequestParam(required = false) ListingType type,
+            @RequestParam(required = false) BigDecimal minRent,
+            @RequestParam(required = false) BigDecimal maxRent,
+            @RequestParam(required = false) Integer bedrooms,
             @RequestParam(required = false) Double lat,
             @RequestParam(required = false) Double lng,
             @RequestParam(required = false, defaultValue = "5") Double radiusKm) {
+        if (minRent != null && maxRent != null && minRent.compareTo(maxRent) > 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "minRent cannot be greater than maxRent");
+        }
+        // An empty text box arrives as "" - treat it the same as "not given".
+        String localityFilter = StringUtils.hasText(locality) ? locality.trim() : null;
+
         List<Listing> results;
         if (lat != null && lng != null) {
-            results = listingRepository.findLiveWithinRadiusKm(lat, lng, radiusKm);
-        } else if (locality != null) {
-            results = listingRepository.findByStatusAndLocalityIgnoreCase(ListingStatus.LIVE, locality);
+            String typeName = type != null ? type.name() : null;
+            results =
+                    listingRepository.findLiveWithinRadiusKm(
+                            lat, lng, radiusKm, localityFilter, typeName, minRent, maxRent, bedrooms);
         } else {
-            results = listingRepository.findByStatus(ListingStatus.LIVE);
+            results =
+                    listingRepository.search(
+                            ListingStatus.LIVE, localityFilter, type, minRent, maxRent, bedrooms);
         }
         return results.stream().map(ListingSummary::from).toList();
     }
