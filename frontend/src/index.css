@@ -1183,6 +1183,128 @@ p {
   }
 }
 
+/* ---------- Admin moderation ---------- */
+
+.count-pill {
+  display: inline-block;
+  margin-left: var(--space-3);
+  padding: 2px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  font-size: var(--text-base);
+  font-weight: 700;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.caught-up-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+  font-size: 1.75rem;
+}
+
+.review-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.review-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.review-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.review-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.review-heading .badge {
+  margin-top: 0;
+}
+
+.review-title {
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+.review-title:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+}
+
+.review-head .price {
+  flex: none;
+  font-size: var(--text-xl);
+  font-weight: 800;
+}
+
+.review-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: var(--space-4);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+}
+
+.review-facts dt {
+  margin-bottom: 2px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.review-facts dd {
+  margin: 0;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.review-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.review-confirm {
+  flex: 1 1 100%;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+@media (max-width: 560px) {
+  .review-head {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+}
+
 /* ---------- Tables ---------- */
 
 table {

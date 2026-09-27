@@ -1,84 +1,184 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { fetchPendingListings, verifyListing } from '../api/client'
+import { CheckIcon } from '../components/icons'
+import { bedroomsLabel, formatRent, typeLabel } from '../utils/format'
+import { formatIstDate } from '../utils/istTime'
 
 export default function AdminModeration() {
-  const [listings, setListings] = useState([])
-  const [status, setStatus] = useState('loading')
+  // null = still loading; otherwise { listings } or { error }.
+  const [result, setResult] = useState(null)
+  const [attempt, setAttempt] = useState(0)
+  const [confirmingId, setConfirmingId] = useState(null)
   const [busyId, setBusyId] = useState(null)
+  const [notice, setNotice] = useState(null) // { ok: boolean, message: string }
 
-  function load() {
-    setStatus('loading')
+  useEffect(() => {
+    let ignore = false
     fetchPendingListings()
-      .then((data) => {
-        setListings(data)
-        setStatus('ready')
-      })
-      .catch(() => setStatus('error'))
+      .then((listings) => !ignore && setResult({ listings }))
+      .catch((err) => !ignore && setResult({ error: err.message }))
+    // If the effect re-runs (retry), drop the old answer so it can't overwrite the new one.
+    return () => {
+      ignore = true
+    }
+  }, [attempt])
+
+  function retry() {
+    setResult(null)
+    setAttempt((n) => n + 1)
   }
 
-  useEffect(load, [])
-
-  async function handleVerify(id) {
-    setBusyId(id)
+  async function handleVerify(listing) {
+    setNotice(null)
+    setBusyId(listing.id)
     try {
-      await verifyListing(id)
-      setListings((prev) => prev.filter((l) => l.id !== id))
+      await verifyListing(listing.id)
+      setResult((prev) => ({ listings: prev.listings.filter((l) => l.id !== listing.id) }))
+      setNotice({ ok: true, message: `Verified: “${listing.title}” is now live.` })
     } catch (err) {
-      alert(err.message)
+      setNotice({ ok: false, message: err.message })
     } finally {
       setBusyId(null)
+      setConfirmingId(null)
     }
   }
 
+  const listings = result?.listings ?? []
+
   return (
     <div className="container page">
-      <h1>Listings pending verification</h1>
-      <p className="text-muted">
-        Confirm the field team has physically visited and photographed each
-        listing before marking it verified and live.
-      </p>
-      <div className="spacer-md" />
+      <div className="page-head">
+        <div>
+          <h1>
+            Pending verification
+            {listings.length > 0 && <span className="count-pill">{listings.length}</span>}
+          </h1>
+          <p className="text-muted">
+            Confirm the field team has physically visited and photographed each listing before
+            making it live.
+          </p>
+        </div>
+      </div>
 
-      {status === 'loading' && <p className="empty-state">Loading…</p>}
-      {status === 'error' && (
-        <p className="empty-state text-danger">Could not load pending listings.</p>
-      )}
-      {status === 'ready' && listings.length === 0 && (
-        <p className="empty-state">Nothing pending. All caught up.</p>
+      {notice && (
+        <p
+          className={`${notice.ok ? 'success-box' : 'error-box'} notice`}
+          role={notice.ok ? 'status' : 'alert'}
+        >
+          {notice.message}
+        </p>
       )}
 
-      {status === 'ready' && listings.length > 0 && (
-        <table>
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Locality</th>
-              <th>Owner</th>
-              <th>Rent</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {listings.map((listing) => (
-              <tr key={listing.id}>
-                <td>{listing.title}</td>
-                <td>{listing.locality}</td>
-                <td>{listing.ownerName}</td>
-                <td>₹{Number(listing.rentAmount).toLocaleString('en-IN')}/mo</td>
-                <td>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    disabled={busyId === listing.id}
-                    onClick={() => handleVerify(listing.id)}
-                  >
-                    {busyId === listing.id ? 'Verifying…' : 'Mark verified'}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {result === null && <p className="empty-state">Loading…</p>}
+
+      {result?.error && (
+        <div className="card no-results">
+          <h2>Could not load the queue</h2>
+          <p className="text-muted">{result.error}</p>
+          <button type="button" className="btn btn-primary" onClick={retry}>
+            Try again
+          </button>
+        </div>
+      )}
+
+      {result?.listings && listings.length === 0 && (
+        <div className="card no-results">
+          <span className="caught-up-icon">
+            <CheckIcon />
+          </span>
+          <h2>All caught up</h2>
+          <p className="text-muted">No listings are waiting for verification.</p>
+        </div>
+      )}
+
+      {listings.length > 0 && (
+        <ul className="review-list">
+          {listings.map((listing) => {
+            const busy = busyId === listing.id
+            return (
+              <li key={listing.id} className="card review-card">
+                <div className="review-head">
+                  <div className="review-heading">
+                    <Link
+                      to={`/listings/${listing.id}`}
+                      className="review-title"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {listing.title}
+                    </Link>
+                    <span className="badge badge-type">{typeLabel(listing.type)}</span>
+                  </div>
+                  <p className="price">
+                    ₹{formatRent(listing.rentAmount)}
+                    <span className="price-unit"> / month</span>
+                  </p>
+                </div>
+
+                <dl className="review-facts">
+                  <div>
+                    <dt>Address</dt>
+                    <dd>{listing.addressLine}</dd>
+                  </div>
+                  <div>
+                    <dt>Locality</dt>
+                    <dd>{listing.locality}</dd>
+                  </div>
+                  <div>
+                    <dt>Owner</dt>
+                    <dd>{listing.ownerName}</dd>
+                  </div>
+                  <div>
+                    <dt>Bedrooms</dt>
+                    <dd>{listing.bedrooms != null ? bedroomsLabel(listing.bedrooms) : '—'}</dd>
+                  </div>
+                  <div>
+                    <dt>Submitted</dt>
+                    <dd>{formatIstDate(listing.createdAt)}</dd>
+                  </div>
+                </dl>
+
+                <div className="review-actions">
+                  {confirmingId === listing.id ? (
+                    <>
+                      <p className="review-confirm">
+                        Has our field team visited and photographed this property?
+                      </p>
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        disabled={busy}
+                        onClick={() => handleVerify(listing)}
+                      >
+                        {busy ? 'Verifying…' : 'Yes, make it live'}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn"
+                        disabled={busy}
+                        onClick={() => setConfirmingId(null)}
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={() => {
+                        setNotice(null)
+                        setConfirmingId(listing.id)
+                      }}
+                    >
+                      Mark verified
+                    </button>
+                  )}
+                </div>
+              </li>
+            )
+          })}
+        </ul>
       )}
     </div>
   )

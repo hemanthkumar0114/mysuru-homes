@@ -29,3 +29,13 @@ export function isFutureIst(value) {
 export function nowIstForInput() {
   return new Date(Date.now() + IST_OFFSET_MS).toISOString().slice(0, 16)
 }
+
+// "2026-09-11T06:26:05Z" -> "11 Sept 2026", shown in India time.
+export function formatIstDate(isoInstant) {
+  return new Date(isoInstant).toLocaleDateString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
