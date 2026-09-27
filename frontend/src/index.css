@@ -117,7 +117,8 @@ button {
 }
 
 .page {
-  padding: var(--space-6) 0 var(--space-8);
+  padding-top: var(--space-6);
+  padding-bottom: var(--space-8);
 }
 
 .center-text {
@@ -252,18 +253,77 @@ button {
 /* ---------- Hero (top band of the home page) ---------- */
 
 .hero {
-  padding: var(--space-7) 0 var(--space-6);
+  padding: var(--space-7) 0 calc(var(--space-7) + var(--space-4));
   background: linear-gradient(
     180deg,
     var(--color-primary-50) 0%,
     var(--color-bg) 100%
   );
-  border-bottom: 1px solid var(--color-border);
 }
 
 .hero h1 {
   font-size: var(--text-3xl);
   margin-bottom: var(--space-3);
+}
+
+/* ---------- Filter bar (floats up over the bottom of the hero) ---------- */
+
+.filter-bar {
+  position: relative;
+  margin-top: calc(-1 * var(--space-7));
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  box-shadow: var(--shadow-md);
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 1fr 1fr 1fr auto;
+  gap: var(--space-4);
+  align-items: end;
+}
+
+.filter-clear {
+  height: 44px;
+}
+
+@media (max-width: 900px) {
+  .filter-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .filter-locality {
+    grid-column: 1 / -1;
+  }
+}
+
+.filter-hint {
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.results-count {
+  margin-bottom: var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.grid.is-loading {
+  opacity: 0.55;
+  transition: opacity var(--transition);
+}
+
+.no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-7) var(--space-5);
+  text-align: center;
+}
+
+.no-results h2 {
+  margin-bottom: 0;
 }
 
 /* ---------- Typography ---------- */
@@ -441,6 +501,11 @@ p {
 }
 
 .field input,
+.field select {
+  height: 44px;
+}
+
+.field input,
 .field select,
 .field textarea {
   width: 100%;
@@ -523,7 +588,7 @@ th {
   }
 
   .hero {
-    padding: var(--space-6) 0 var(--space-5);
+    padding: var(--space-6) 0 calc(var(--space-7) + var(--space-3));
   }
 
   .navbar-inner {
@@ -536,6 +601,15 @@ th {
 
   .navbar nav {
     justify-content: flex-start;
+  }
+
+  .filter-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .filter-locality,
+  .filter-clear {
+    grid-column: 1 / -1;
   }
 
   .form-row {
