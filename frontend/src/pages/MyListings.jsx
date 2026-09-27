@@ -1,65 +1,101 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { fetchMyListings } from '../api/client'
+import { HomeIcon, PinIcon } from '../components/icons'
+import { formatRent, typeLabel } from '../utils/format'
 
-const STATUS_LABEL = {
-  DRAFT: 'Pending verification',
-  LIVE: 'Live',
-  EXPIRED: 'Expired',
+const STATUS = {
+  DRAFT: { label: 'Pending verification', className: 'badge-pending' },
+  LIVE: { label: 'Live', className: 'badge-verified' },
+  EXPIRED: { label: 'Expired', className: 'badge-muted' },
 }
 
 export default function MyListings() {
-  const [listings, setListings] = useState([])
-  const [status, setStatus] = useState('loading')
+  // null = still loading; otherwise { listings } or { error }.
+  const [result, setResult] = useState(null)
+  // Set by PostProperty when it sends the owner here after a submit.
+  const posted = useLocation().state?.posted
 
   useEffect(() => {
     fetchMyListings()
-      .then((data) => {
-        setListings(data)
-        setStatus('ready')
-      })
-      .catch(() => setStatus('error'))
+      .then((listings) => setResult({ listings }))
+      .catch((err) => setResult({ error: err.message }))
   }, [])
+
+  const listings = result?.listings ?? []
 
   return (
     <div className="container page">
-      <div className="row-between">
-        <h1>My listings</h1>
+      <div className="page-head">
+        <div>
+          <h1>My listings</h1>
+          {listings.length > 0 && (
+            <p className="text-muted">
+              {listings.length} {listings.length === 1 ? 'property' : 'properties'}
+            </p>
+          )}
+        </div>
         <Link to="/post-property" className="btn btn-primary">
           Post a property
         </Link>
       </div>
-      <div className="spacer-md" />
 
-      {status === 'loading' && <p className="empty-state">Loading…</p>}
-      {status === 'error' && (
-        <p className="empty-state text-danger">Could not load your listings.</p>
-      )}
-      {status === 'ready' && listings.length === 0 && (
-        <p className="empty-state">You haven't posted any properties yet.</p>
+      {posted && (
+        <p className="success-box notice" role="status">
+          Submitted! &ldquo;{posted}&rdquo; is pending verification. Our field team will visit soon.
+        </p>
       )}
 
-      {status === 'ready' && listings.length > 0 && (
-        <table>
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Locality</th>
-              <th>Rent</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {listings.map((listing) => (
-              <tr key={listing.id}>
-                <td>{listing.title}</td>
-                <td>{listing.locality}</td>
-                <td>₹{Number(listing.rentAmount).toLocaleString('en-IN')}/mo</td>
-                <td>{STATUS_LABEL[listing.status] || listing.status}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {result === null && <p className="empty-state">Loading…</p>}
+
+      {result?.error && <p className="empty-state text-danger">{result.error}</p>}
+
+      {result?.listings && listings.length === 0 && (
+        <div className="card no-results">
+          <h2>No properties yet</h2>
+          <p className="text-muted">
+            Post your first property and our field team will verify it before it goes live.
+          </p>
+          <Link to="/post-property" className="btn btn-primary">
+            Post a property
+          </Link>
+        </div>
+      )}
+
+      {listings.length > 0 && (
+        <ul className="my-listings">
+          {listings.map((listing) => {
+            const status = STATUS[listing.status] ?? {
+              label: listing.status,
+              className: 'badge-muted',
+            }
+            return (
+              <li key={listing.id} className="card my-listing">
+                <span className="my-listing-icon">
+                  <HomeIcon />
+                </span>
+
+                <div className="my-listing-main">
+                  <Link to={`/listings/${listing.id}`} className="my-listing-title">
+                    {listing.title}
+                  </Link>
+                  <p className="listing-meta text-muted">
+                    <PinIcon />
+                    {listing.locality} · {typeLabel(listing.type)}
+                  </p>
+                </div>
+
+                <div className="my-listing-side">
+                  <p className="price">
+                    ₹{formatRent(listing.rentAmount)}
+                    <span className="price-unit"> / month</span>
+                  </p>
+                  <span className={`badge ${status.className}`}>{status.label}</span>
+                </div>
+              </li>
+            )
+          })}
+        </ul>
       )}
     </div>
   )

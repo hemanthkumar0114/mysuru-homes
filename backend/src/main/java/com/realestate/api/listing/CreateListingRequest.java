@@ -6,12 +6,12 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 public record CreateListingRequest(
-        @NotNull ListingType type,
+        @NotNull(message = "is required") ListingType type,
         @NotBlank String title,
         @NotBlank String addressLine,
         @NotBlank String locality,
-        @NotNull Double lat,
-        @NotNull Double lng,
-        @NotNull @DecimalMin(value = "0.0", inclusive = false) BigDecimal rentAmount,
+        @NotNull(message = "is required") Double lat,
+        @NotNull(message = "is required") Double lng,
+        @NotNull(message = "is required") @DecimalMin(value = "0.0", inclusive = false, message = "must be greater than 0") BigDecimal rentAmount,
         Integer bedrooms,
         Integer bathrooms) {}

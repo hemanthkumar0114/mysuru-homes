@@ -884,26 +884,26 @@ p {
   background: var(--color-primary-50);
 }
 
-.role-picker {
+.choice-picker {
   margin: 0;
   padding: 0;
   border: none;
 }
 
-.role-picker legend {
+.choice-picker legend {
   margin-bottom: 6px;
   padding: 0;
   font-size: var(--text-sm);
   font-weight: 600;
 }
 
-.role-options {
+.choice-options {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-3);
 }
 
-.role-option {
+.choice-option {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -919,39 +919,39 @@ p {
     box-shadow var(--transition);
 }
 
-.role-option:hover {
+.choice-option:hover {
   background: var(--color-hover);
 }
 
 /* The real radio button stays in the page for keyboards and screen readers,
    it is just visually hidden - the card itself is the visible control. */
-.role-option input {
+.choice-option input {
   position: absolute;
   opacity: 0;
   pointer-events: none;
 }
 
-.role-option:focus-within {
+.choice-option:focus-within {
   box-shadow: 0 0 0 3px var(--color-primary-ring);
 }
 
-.role-option.selected {
+.choice-option.selected {
   border-color: var(--color-primary);
   background: var(--color-primary-50);
 }
 
-.role-title {
+.choice-title {
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-weight: 700;
 }
 
-.role-option.selected .role-title {
+.choice-option.selected .choice-title {
   color: var(--color-primary-dark);
 }
 
-.role-desc {
+.choice-desc {
   font-size: var(--text-xs);
   color: var(--color-muted);
 }
@@ -961,8 +961,225 @@ p {
     padding: var(--space-5) var(--space-4);
   }
 
-  .role-options {
+  .choice-options {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Owner pages: Post property, My listings ---------- */
+
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.page-head h1 {
+  margin-bottom: 2px;
+}
+
+.notice {
+  margin-bottom: var(--space-4);
+}
+
+.post-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.post-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-6);
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.form-section h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.form-section .field-hint {
+  margin-top: calc(-1 * var(--space-2));
+}
+
+.input-prefix {
+  position: relative;
+}
+
+.input-prefix span {
+  position: absolute;
+  top: 50%;
+  left: var(--space-3);
+  transform: translateY(-50%);
+  color: var(--color-muted);
+  font-weight: 600;
+}
+
+.input-prefix input {
+  padding-left: 32px;
+}
+
+.post-side {
+  position: sticky;
+  top: 88px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.post-side h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.steps li {
+  position: relative;
+  padding-left: 40px;
+  font-size: var(--text-sm);
+  counter-increment: step;
+}
+
+.steps li::before {
+  content: counter(step);
+  position: absolute;
+  top: -2px;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--color-primary-100);
+  color: var(--color-primary-dark);
+  font-weight: 700;
+}
+
+.my-listings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.my-listing {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+}
+
+.my-listing-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius);
+  background: var(--color-primary-50);
+  color: var(--color-primary);
+  font-size: 1.5rem;
+}
+
+.my-listing-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.my-listing-title {
+  display: block;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.my-listing-title:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+}
+
+.my-listing-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex: none;
+}
+
+.my-listing-side .price {
+  font-size: var(--text-lg);
+  font-weight: 800;
+}
+
+.my-listing-side .badge {
+  margin-top: 0;
+}
+
+.badge-muted {
+  background: var(--color-hover);
+  color: var(--color-muted);
+}
+
+@media (max-width: 900px) {
+  .post-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .post-side {
+    position: static;
+  }
+}
+
+@media (max-width: 560px) {
+  .post-form {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .my-listing {
+    flex-wrap: wrap;
+  }
+
+  .my-listing-main {
+    flex-basis: calc(100% - 48px - var(--space-4));
+  }
+
+  .my-listing-title {
+    white-space: normal;
+  }
+
+  .my-listing-side {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
   }
 }
 

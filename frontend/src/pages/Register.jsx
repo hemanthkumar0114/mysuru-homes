@@ -50,13 +50,13 @@ export default function Register() {
             </div>
           )}
 
-          <fieldset className="role-picker">
+          <fieldset className="choice-picker">
             <legend>I am a…</legend>
-            <div className="role-options">
+            <div className="choice-options">
               {ROLES.map((option) => (
                 <label
                   key={option.value}
-                  className={role === option.value ? 'role-option selected' : 'role-option'}
+                  className={role === option.value ? 'choice-option selected' : 'choice-option'}
                 >
                   <input
                     type="radio"
@@ -65,11 +65,11 @@ export default function Register() {
                     checked={role === option.value}
                     onChange={() => setRole(option.value)}
                   />
-                  <span className="role-title">
+                  <span className="choice-title">
                     {option.title}
                     {role === option.value && <CheckIcon />}
                   </span>
-                  <span className="role-desc">{option.description}</span>
+                  <span className="choice-desc">{option.description}</span>
                 </label>
               ))}
             </div>
