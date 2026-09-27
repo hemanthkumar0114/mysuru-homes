@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import PasswordField from '../components/PasswordField'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
@@ -26,43 +27,49 @@ export default function Login() {
   }
 
   return (
-    <div className="container page">
-      <h1>Log in</h1>
-      <div className="spacer-md" />
+    <div className="container page auth-page">
+      <div className="card auth-card">
+        <span className="brand-mark auth-mark">M</span>
+        <h1>Welcome back</h1>
+        <p className="text-muted auth-subtitle">
+          Log in to enquire about properties and book visits.
+        </p>
 
-      <form className="form" onSubmit={handleSubmit}>
-        {error && <div className="error-box">{error}</div>}
+        <form className="auth-form" onSubmit={handleSubmit}>
+          {error && (
+            <div className="error-box" role="alert">
+              {error}
+            </div>
+          )}
 
-        <div className="field">
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
+          <div className="field">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              autoFocus
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-        <div className="field">
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            type="password"
+          <PasswordField
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
+            autoComplete="current-password"
           />
-        </div>
 
-        <button type="submit" className="btn btn-primary btn-block" disabled={submitting}>
-          {submitting ? 'Logging in…' : 'Log in'}
-        </button>
+          <button type="submit" className="btn btn-primary btn-block" disabled={submitting}>
+            {submitting ? 'Logging in…' : 'Log in'}
+          </button>
+        </form>
 
-        <p className="text-sm text-muted">
-          No account yet? <Link to="/register">Sign up</Link>
+        <p className="auth-switch text-muted">
+          New to Mysuru Homes? <Link to="/register">Create an account</Link>
         </p>
-      </form>
+      </div>
     </div>
   )
 }

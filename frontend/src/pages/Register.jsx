@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { CheckIcon } from '../components/icons'
+import PasswordField from '../components/PasswordField'
 import { useAuth } from '../context/AuthContext'
+
+const ROLES = [
+  { value: 'TENANT', title: 'Tenant', description: 'I want to rent a home or PG' },
+  { value: 'OWNER', title: 'Owner', description: 'I want to list my property' },
+]
 
 export default function Register() {
   const { register } = useAuth()
@@ -28,57 +35,87 @@ export default function Register() {
   }
 
   return (
-    <div className="container page">
-      <h1>Create an account</h1>
-      <div className="spacer-md" />
+    <div className="container page auth-page">
+      <div className="card auth-card">
+        <span className="brand-mark auth-mark">M</span>
+        <h1>Create your account</h1>
+        <p className="text-muted auth-subtitle">
+          Find verified rentals in Mysuru, or list your own property.
+        </p>
 
-      <form className="form" onSubmit={handleSubmit}>
-        {error && <div className="error-box">{error}</div>}
+        <form className="auth-form" onSubmit={handleSubmit}>
+          {error && (
+            <div className="error-box" role="alert">
+              {error}
+            </div>
+          )}
 
-        <div className="field">
-          <label htmlFor="name">Full name</label>
-          <input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
-        </div>
+          <fieldset className="role-picker">
+            <legend>I am a…</legend>
+            <div className="role-options">
+              {ROLES.map((option) => (
+                <label
+                  key={option.value}
+                  className={role === option.value ? 'role-option selected' : 'role-option'}
+                >
+                  <input
+                    type="radio"
+                    name="role"
+                    value={option.value}
+                    checked={role === option.value}
+                    onChange={() => setRole(option.value)}
+                  />
+                  <span className="role-title">
+                    {option.title}
+                    {role === option.value && <CheckIcon />}
+                  </span>
+                  <span className="role-desc">{option.description}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
 
-        <div className="field">
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
+          <div className="field">
+            <label htmlFor="name">Full name</label>
+            <input
+              id="name"
+              autoComplete="name"
+              autoFocus
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
 
-        <div className="field">
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            minLength={6}
+          <div className="field">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <PasswordField
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
+            autoComplete="new-password"
+            minLength={6}
+            hint="At least 6 characters."
           />
-        </div>
 
-        <div className="field">
-          <label htmlFor="role">I am a...</label>
-          <select id="role" value={role} onChange={(e) => setRole(e.target.value)}>
-            <option value="TENANT">Tenant looking to rent</option>
-            <option value="OWNER">Owner listing a property</option>
-          </select>
-        </div>
+          <button type="submit" className="btn btn-primary btn-block" disabled={submitting}>
+            {submitting ? 'Creating account…' : 'Create account'}
+          </button>
+        </form>
 
-        <button type="submit" className="btn btn-primary btn-block" disabled={submitting}>
-          {submitting ? 'Creating account…' : 'Sign up'}
-        </button>
-
-        <p className="text-sm text-muted">
+        <p className="auth-switch text-muted">
           Already have an account? <Link to="/login">Log in</Link>
         </p>
-      </form>
+      </div>
     </div>
   )
 }
