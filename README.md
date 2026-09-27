@@ -1,32 +1,142 @@
-# Karnataka Real Estate Platform
+# Mysuru Homes
 
-Phase 1 build: owner-direct rentals and PG/co-living for one corridor in
-Mysuru (Vijayanagar, Hebbal, Hootagalli, Bogadi, Dattagalli,
-Ramakrishnanagar). See the strategy document for the full three-phase plan.
+A full-stack rental listings platform for one corridor of Mysuru, Karnataka.
+Owners post properties directly (no brokers), a field-verification step
+keeps listings honest, and tenants browse, enquire and book visits — all
+backed by a real MySQL database, JWT auth, and role-based access control.
 
-## Stack
+Built as a portfolio project to demonstrate a complete, working full-stack
+application: a Spring Boot REST API, a React frontend with no build-tool
+scaffolding left un-customized, real authorization rules (not just
+authentication), file uploads, and an automated test suite that runs with
+one command.
 
-- **Backend** — `backend/`: Java 21, Spring Boot 4.1, Spring Web, Spring Data
-  JPA, Spring Security with JWT (email + password), MySQL 8.
-- **Frontend** — `frontend/`: React 19, plain JavaScript (no TypeScript),
-  plain CSS (no Tailwind), React Router.
+## Features
 
-## Running locally
+- **Public browsing** — search live listings by locality, type (rental/PG),
+  rent range and bedroom count, or by radius around a point (Haversine
+  distance on plain lat/lng columns). Six locality landing pages
+  (Vijayanagar, Hebbal, Hootagalli, Bogadi, Dattagalli, Ramakrishnanagar)
+  show live rent ranges and listings for that area.
+- **Owner-direct listings** — an owner posts a property with up to 5 photos;
+  it starts as `DRAFT` and is invisible to everyone but its owner and admins
+  until a field team member verifies it.
+- **Field verification** — an admin moderation queue lists every pending
+  `DRAFT`; verifying one stamps `verifiedAt`/`verifiedBy` and makes it
+  `LIVE` and publicly searchable. This is the platform's core trust
+  mechanic — no unverified listing is ever shown to the public.
+- **Enquiries** — a logged-in tenant can tell an owner "I'm interested" on
+  any `LIVE` listing, once per listing.
+- **Visit booking** — a tenant requests a visit slot (IST date/time) on any
+  `LIVE` listing, one open request per listing at a time, and can cancel it
+  from "My visits". Admins see every request, filterable by status, and
+  confirm or cancel them.
+- **Owner dashboard** — "My listings" shows enquiry and visit-request counts
+  per property, with a detail view listing who enquired and who asked to
+  visit (tenants shown by first name only).
+- **Photo uploads** — up to 5 JPEG/PNG/WebP photos per listing, validated
+  server-side for type and size, shown on listing cards and a clickable
+  gallery on the detail page.
+- **Auth & authorization** — email/password with JWTs; every sensitive
+  action is checked against the caller's role *and* ownership (not just
+  "are you logged in"), enforced in the controllers and covered by tests.
 
-### 1. Database (one-time setup)
+## Tech stack
 
-You already have MySQL Server 8.0 + Workbench installed. Open Workbench,
-connect to your local instance (root), open a new SQL tab, and run
-[`backend/sql/setup.sql`](backend/sql/setup.sql) — it creates the
-`real_estate` database and a dedicated `realestate_app` user, so the backend
-never needs your root password. Safe to re-run if you're not sure whether
-you already did it.
+| Layer | Technology |
+|---|---|
+| Backend | Java 21, Spring Boot 4.1, Spring Web, Spring Data JPA, Spring Security (JWT via `jjwt`) |
+| Database | MySQL 8 (production/dev) — automated tests use an in-memory H2 database instead, see [Running tests](#running-tests) |
+| Frontend | React 19, React Router, plain JavaScript (no TypeScript), plain CSS (no Tailwind/CSS framework), Vite |
+| Testing | JUnit 5 + Spring Boot Test (backend, HTTP-level integration tests), Vitest (frontend, unit tests) |
 
-Don't have MySQL installed? `docker compose up -d` starts a MySQL 8
-container instead (see `docker-compose.yml`) — then run the same SQL
-against it.
+## Architecture
 
-### 2. Backend
+```
+┌─────────────────────┐        HTTP (JSON, JWT bearer token)       ┌──────────────────────────────┐
+│   React SPA (Vite)   │ ───────────────────────────────────────▶  │   Spring Boot REST API        │
+│   :5173 in dev        │ ◀───────────────────────────────────────  │   :8080                       │
+│                       │        /api/* proxied by Vite in dev      │                                │
+│  pages/  components/  │                                            │  auth/      JWT issue+verify   │
+│  context/AuthContext  │                                            │  listing/   search, CRUD,      │
+│   (JWT in             │                                            │             photos, activity   │
+│    localStorage)      │                                            │  enquiry/   "I'm interested"   │
+└──────────┬────────────┘                                            │  visit/     visit bookings     │
+           │                                                          │  admin/     moderation queue,  │
+           │ GET /uploads/**                                          │             visit management   │
+           │ (photo files)                                            │  locality/  locality pages     │
+           ▼                                                          │  security/  JWT filter,        │
+┌─────────────────────┐                                               │             AuthenticatedUser  │
+│  local uploads/       │◀──────────────────────────────────────────  │  config/    SecurityConfig,    │
+│  folder (dev storage) │        files saved by PhotoStorageService   │             error handling      │
+└─────────────────────┘                                               └───────────────┬──────────────┘
+                                                                                        │ Spring Data JPA
+                                                                                        ▼
+                                                                       ┌──────────────────────────────┐
+                                                                       │   MySQL 8 (dev/prod)          │
+                                                                       │   users, listings,             │
+                                                                       │   listing_photos, enquiries,   │
+                                                                       │   visit_bookings,              │
+                                                                       │   locality_pages               │
+                                                                       └──────────────────────────────┘
+```
+
+Every request after login carries `Authorization: Bearer <jwt>`; there are
+no server-side sessions (`SessionCreationPolicy.STATELESS`). `JwtAuthFilter`
+decodes the token into an `AuthenticatedUser` principal that controllers
+read directly — no extra database round-trip just to know who's calling.
+Authorization is layered: route-level role rules in `SecurityConfig`
+(e.g. only `OWNER` can `POST /api/listings`), plus per-resource ownership
+checks inside the controllers themselves (e.g. an owner can only see
+activity for *their own* listing — a role alone can't express that).
+
+## Getting started
+
+### Prerequisites
+
+- Java 21 (JDK)
+- Node.js 20+ and npm
+- MySQL 8 Server (a `docker-compose.yml` is included if you'd rather run
+  MySQL in a container)
+
+### 1. Database
+
+Run [`backend/sql/setup.sql`](backend/sql/setup.sql) once against your
+MySQL server (MySQL Workbench, or `mysql -u root -p < backend/sql/setup.sql`
+from the CLI as root). It creates the `real_estate` database and a
+dedicated `realestate_app` user — edit the placeholder password in that
+file first, and use the same value for `DB_PASSWORD` below. The backend
+never needs your root credentials after this.
+
+No local MySQL? `docker compose up -d` starts one (see
+`docker-compose.yml`), then run the same SQL against it.
+
+### 2. Environment variables
+
+The backend refuses to start unless these are set — there are no baked-in
+defaults for secrets. Copy [`backend/.env.example`](backend/.env.example)
+as a reference and set these as real OS environment variables (Spring Boot
+reads them directly; there's no `.env` file loader wired up).
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `DB_PASSWORD` | Yes | Password for the `realestate_app` MySQL user (see step 1) |
+| `JWT_SECRET` | Yes | Signing key for auth tokens — any long random string (32+ chars). Generate one with, e.g., `-join ((48..57)+(65..90)+(97..122)\|Get-Random -Count 48\|%{[char]$_})` in PowerShell |
+| `DB_HOST` | No (default `localhost`) | MySQL host |
+| `DB_PORT` | No (default `3306`) | MySQL port |
+| `DB_NAME` | No (default `real_estate`) | Database name |
+| `DB_USER` | No (default `realestate_app`) | Database user |
+| `PORT` | No (default `8080`) | Backend HTTP port |
+| `JWT_EXPIRATION_MS` | No (default `86400000` = 24h) | Token lifetime |
+| `UPLOAD_DIR` | No (default `uploads`) | Where listing photos are stored on disk |
+
+PowerShell (per terminal session):
+```powershell
+$env:DB_PASSWORD = "your-password-from-setup.sql"
+$env:JWT_SECRET = "a-long-random-string-at-least-32-characters"
+```
+
+### 3. Backend
 
 ```
 cd backend
@@ -34,12 +144,13 @@ cd backend
 ```
 
 Runs on `http://localhost:8080`. Tables are created automatically on first
-run (`ddl-auto: update`), and a few demo accounts + listings are seeded so
-the app isn't empty (see "Demo accounts" below).
+run (`ddl-auto: update`), and demo accounts + a few demo listings are
+seeded so the app isn't empty (see [Demo accounts](#demo-accounts)).
+Locality pages are seeded the same way.
 
 Health check: `GET http://localhost:8080/actuator/health`
 
-### 3. Frontend
+### 4. Frontend
 
 ```
 cd frontend
@@ -47,8 +158,8 @@ npm install
 npm run dev
 ```
 
-Runs on `http://localhost:5173`. Requests to `/api/*` are proxied to the
-backend on `:8080` (see `vite.config.js`).
+Runs on `http://localhost:5173`. Requests to `/api/*` and `/uploads/*` are
+proxied to the backend on `:8080` (see `frontend/vite.config.js`).
 
 ## Demo accounts
 
@@ -57,94 +168,91 @@ database:
 
 | Email | Password | Role |
 |---|---|---|
-| admin@mysuruhomes.local | admin1234 | ADMIN — sees the moderation queue |
-| owner@mysuruhomes.local | owner1234 | OWNER — posts properties, has 3 demo listings already |
-| tenant@mysuruhomes.local | tenant1234 | TENANT — browses, enquires, books visits |
+| admin@mysuruhomes.local | admin1234 | ADMIN — moderation queue, visit requests |
+| owner@mysuruhomes.local | owner1234 | OWNER — has demo listings already, can post more |
+| tenant@mysuruhomes.local | tenant1234 | TENANT — browse, enquire, book/cancel visits |
 
-## Complete flow
+## Running tests
 
-**Tenant:** browse `/` (no login needed) → open a listing → log in/sign up
-if prompted → "I'm interested" (enquiry) or book a visit with a date/time.
+Everything runs with **one command** and needs no database setup, no
+environment variables, and never touches your real MySQL data — backend
+tests run against an isolated in-memory H2 database created fresh per run
+(see `backend/src/test/resources/application.yml`), and frontend tests are
+pure unit tests.
 
-**Owner:** sign up as OWNER (or use the demo account) → "Post a property" →
-fill the form → submitted as `DRAFT` (pending) → shows on "My listings"
-with its status → once an admin verifies it, it flips to `LIVE` and
-appears in public search.
+```
+./run-tests.sh      # macOS/Linux/Git-Bash
+.\run-tests.ps1      # Windows PowerShell
+```
 
-**Admin:** log in as ADMIN → "Admin review" → sees every `DRAFT` listing →
-"Mark verified" → listing becomes `LIVE`, `verifiedAt`/`verifiedBy` are
-stamped (mirrors the strategy document's core differentiator: every
-listing is confirmed before it's public).
+Or run each suite on its own:
 
-See the "Page → API → table" mapping below for exactly what each screen
-calls and what it touches in the database.
+```
+cd backend && ./mvnw test     # 51 tests: auth, search/filters, draft
+                               # visibility, enquiry/visit rules, admin
+                               # verification — real HTTP calls through
+                               # the actual security filter chain
+cd frontend && npm test        # 31 tests: formatRent, IST time helpers,
+                               # visit-status/pluralization utilities
+```
 
-## Page → API → database mapping
-
-| Frontend page | Calls | Backend controller | Table(s) touched |
-|---|---|---|---|
-| Home (`/`) | `GET /api/listings` | `ListingController` | `listings` |
-| Listing detail (`/listings/:id`) | `GET /api/listings/{id}`, `POST /api/enquiries`, `POST /api/visits` | `ListingController`, `EnquiryController`, `VisitBookingController` | `listings`, `enquiries`, `visit_bookings` |
-| Login (`/login`) | `POST /api/auth/login` | `AuthController` | `users` |
-| Register (`/register`) | `POST /api/auth/register` | `AuthController` | `users` |
-| Post a property (`/post-property`) | `POST /api/listings` | `ListingController` | `listings` |
-| My listings (`/my-listings`) | `GET /api/my-listings` | `ListingController` | `listings` |
-| Admin review (`/admin`) | `GET /api/admin/listings/pending`, `POST /api/admin/listings/{id}/verify` | `AdminController` | `listings`, `users` |
-
-## Auth model
-
-Email + password (not phone-OTP — that needs a paid SMS provider like
-MSG91/Twilio, which is a Phase 2 swap-in, not a Phase 1 blocker). On
-login/register the backend returns a JWT; the frontend stores it in
-`localStorage` and sends it as `Authorization: Bearer <token>` on every
-request after that (see `frontend/src/api/client.js` and
-`frontend/src/context/AuthContext.jsx`). Route access:
-
-- Public: browsing listings, login, register.
-- Logged in (any role): enquiries, visit booking.
-- `OWNER` only: posting a listing, "My listings".
-- `ADMIN` only: the moderation queue.
-
-## Project layout
+## Project structure
 
 ```
 real-estate project/
+├── run-tests.sh / run-tests.ps1   Run the whole test suite in one command
 ├── backend/
-│   ├── sql/setup.sql              One-time MySQL database + user setup
-│   └── src/main/java/com/realestate/api/
-│       ├── auth/                  Register/login, JWT issuing
-│       ├── security/              JWT filter + verification
-│       ├── user/                  User entity, roles
-│       ├── listing/               Listing entity, search, owner posting
-│       ├── enquiry/                "I'm interested" taps
-│       ├── visit/                 Visit-booking requests
-│       ├── admin/                 Moderation queue
-│       └── config/                Security rules, CORS, demo data, error handling
+│   ├── sql/setup.sql                One-time MySQL database + user setup
+│   ├── .env.example                  Reference for required env vars
+│   └── src/
+│       ├── main/java/com/realestate/api/
+│       │   ├── auth/        Register/login, JWT issuing
+│       │   ├── security/    JWT filter, AuthenticatedUser principal
+│       │   ├── user/        User entity, roles
+│       │   ├── listing/     Search/filters, draft visibility, owner
+│       │   │                 posting, photo uploads, owner activity
+│       │   ├── enquiry/     "I'm interested" (LIVE-only, one per tenant)
+│       │   ├── visit/       Visit booking, cancellation
+│       │   ├── admin/       Moderation queue, visit confirm/cancel
+│       │   ├── locality/    Public locality landing pages
+│       │   └── config/      Security rules, CORS, uploads route,
+│       │                     demo/locality seeding, error handling
+│       └── test/java/com/realestate/api/   JUnit test suite (see above)
 ├── frontend/
 │   └── src/
-│       ├── api/client.js          All fetch() calls to the backend
-│       ├── context/AuthContext.jsx  Who's logged in, JWT storage
-│       ├── components/            Navbar, listing card, route guard
-│       └── pages/                 One file per screen (see table above)
-└── docker-compose.yml             Optional MySQL container
+│       ├── api/client.js             Every fetch() call to the backend
+│       ├── context/AuthContext.jsx    Who's logged in, JWT storage
+│       ├── components/                Navbar, listing card, route guard, ...
+│       ├── pages/                     One file per screen
+│       └── utils/                     formatRent, IST time helpers (tested)
+└── docker-compose.yml                 Optional MySQL container
 ```
 
-## What's built so far
+## Screenshots
 
-| Area | Status |
-|---|---|
-| Domain model | `User`, `Listing`, `ListingPhoto`, `Enquiry`, `VisitBooking`, `LocalityPage` |
-| Auth | Email+password register/login, JWT, role-gated routes |
-| Listing search | Locality filter, geo-radius (Haversine), listing detail |
-| Owner flow | Post a property, view own listings with status |
-| Admin flow | Pending-listing queue, mark-verified action |
-| Tenant actions | Enquiries, visit booking |
-| Frontend | Full multi-page app (Home, detail, auth, owner, admin) in plain JS/CSS |
+_Add screenshots here before sharing this repo — e.g. drop image files into
+`docs/screenshots/` and reference them below:_
 
-## Explicitly not built yet (by design — see Phase 1 scope)
+- Home page with locality search and filters
+- Listing detail page with photo gallery
+- Post a property (owner) with photo upload
+- Admin moderation queue and visit requests
+- My visits (tenant) and My listings with enquiry/visit counts
 
-Phone-OTP login (needs a paid SMS provider), photo upload (listings take an
-image URL for now, not a file upload), WhatsApp notifications, payments,
-mobile app, Flyway/Liquibase migrations (schema is auto-created via
-`ddl-auto: update`, fine for local dev only). These are the next slices —
-see the strategy document's "What gets built" table for Phase 1.
+```markdown
+![Home page](docs/screenshots/home.png)
+![Listing detail](docs/screenshots/listing-detail.png)
+```
+
+## Known limitations
+
+- Phone-OTP login is out of scope (needs a paid SMS provider like
+  MSG91/Twilio) — email/password only for now.
+- Schema is managed by Hibernate's `ddl-auto: update`, which is fine for a
+  single local database but should be replaced with Flyway/Liquibase
+  migrations before this ever points at a shared or production database.
+- Listing photos are stored on local disk (see `PhotoStorageService`) —
+  fine for one server, but would need to move to S3/Cloud Storage before
+  running on more than one instance.
+- No WhatsApp notifications or payments (both explicitly out of scope for
+  this phase).
