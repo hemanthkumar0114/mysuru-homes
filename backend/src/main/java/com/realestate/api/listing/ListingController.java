@@ -46,7 +46,7 @@ public class ListingController {
             @RequestParam(required = false) Double lng,
             @RequestParam(required = false, defaultValue = "5") Double radiusKm) {
         if (minRent != null && maxRent != null && minRent.compareTo(maxRent) > 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "minRent cannot be greater than maxRent");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Minimum rent cannot be greater than maximum rent.");
         }
         // An empty text box arrives as "" - treat it the same as "not given".
         String localityFilter = StringUtils.hasText(locality) ? locality.trim() : null;

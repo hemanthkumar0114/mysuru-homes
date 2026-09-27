@@ -6,6 +6,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public class ListingNotFoundException extends RuntimeException {
     public ListingNotFoundException(String id) {
-        super("Listing not found: " + id);
+        super("That listing could not be found. It may have been removed.");
     }
 }

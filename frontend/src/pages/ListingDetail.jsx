@@ -11,6 +11,7 @@ import {
 } from '../components/icons'
 import { useAuth } from '../context/AuthContext'
 import { bedroomsLabel, formatRent, typeLabel } from '../utils/format'
+import { isFutureIst, istInputToInstant, nowIstForInput } from '../utils/istTime'
 
 export default function ListingDetail() {
   const { id } = useParams()
@@ -49,8 +50,18 @@ export default function ListingDetail() {
   async function handleBookVisit(e) {
     e.preventDefault()
     setActionMessage('')
+    if (!slotTime) {
+      showResult(false, 'Please pick a date and time for your visit.')
+      return
+    }
+    // Checked again here (not just via the input's min) because the page may
+    // have been open for a while since the min was set.
+    if (!isFutureIst(slotTime)) {
+      showResult(false, 'Please choose a date and time in the future.')
+      return
+    }
     try {
-      await bookVisit(id, slotTime)
+      await bookVisit(id, istInputToInstant(slotTime))
       showResult(true, 'Visit requested. You will be contacted to confirm the slot.')
     } catch (err) {
       showResult(false, err.message)
@@ -188,16 +199,19 @@ export default function ListingDetail() {
 
               <div className="side-divider" />
 
-              <form className="stack" onSubmit={handleBookVisit}>
+              <form className="stack" onSubmit={handleBookVisit} noValidate>
                 <div className="field">
                   <label htmlFor="slotTime">Book a visit</label>
                   <input
                     id="slotTime"
                     type="datetime-local"
                     value={slotTime}
+                    min={nowIstForInput()}
                     onChange={(e) => setSlotTime(e.target.value)}
-                    required
                   />
+                  <span className="field-hint text-muted">
+                    Times are in India Standard Time (IST).
+                  </span>
                 </div>
                 <button type="submit" className="btn btn-block">
                   Request visit

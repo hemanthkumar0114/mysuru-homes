@@ -15,6 +15,25 @@ export function setToken(token) {
   }
 }
 
+// Turns a failed response into a sentence a person can act on. The backend
+// sends {"message": "..."} for expected problems (bad input, wrong password).
+// Server errors (5xx) are never shown raw - they may contain internal detail.
+async function friendlyErrorMessage(res) {
+  if (res.status >= 500) {
+    return 'Something went wrong on our side. Please try again in a moment.'
+  }
+  try {
+    const body = await res.json()
+    if (body.message) return body.message
+  } catch {
+    // response had no JSON body - fall through to the generic messages
+  }
+  if (res.status === 401) return 'Please log in to continue.'
+  if (res.status === 403) return "You don't have permission to do that."
+  if (res.status === 404) return "We couldn't find what you were looking for."
+  return 'That request could not be completed. Please check what you entered.'
+}
+
 async function request(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...options.headers }
   const token = getToken()
@@ -25,20 +44,12 @@ async function request(path, options = {}) {
   const res = await fetch(path, { ...options, headers })
 
   if (!res.ok) {
-    let message = `Request failed: ${res.status}`
-    try {
-      const body = await res.json()
-      message = body.message || message
-    } catch {
-      // response had no JSON body, keep the default message
-    }
-    throw new Error(message)
+    throw new Error(await friendlyErrorMessage(res))
   }
 
-  if (res.status === 204) {
-    return null
-  }
-  return res.json()
+  // Some successful replies have no body (204, or a 201 from POST /api/visits).
+  const body = await res.text()
+  return body ? JSON.parse(body) : null
 }
 
 // ---- Public: browsing ----

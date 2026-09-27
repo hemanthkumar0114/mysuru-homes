@@ -642,6 +642,10 @@ p {
   gap: var(--space-4);
 }
 
+.field-hint {
+  font-size: var(--text-xs);
+}
+
 .error-box {
   background: var(--color-danger-bg);
   color: var(--color-danger);

@@ -6,6 +6,8 @@ import com.realestate.api.listing.ListingRepository;
 import com.realestate.api.security.AuthenticatedUser;
 import com.realestate.api.user.User;
 import com.realestate.api.user.UserRepository;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
@@ -25,12 +27,20 @@ public class VisitBookingController {
     private final ListingRepository listingRepository;
     private final UserRepository userRepository;
 
-    public record CreateVisitRequest(@NotBlank String listingId, @NotNull Instant slotTime) {}
+    /**
+     * slotTime is an exact instant, so it must carry a zone: "2026-09-27T04:12:00Z"
+     * or "2026-09-27T09:42:00+05:30". (The frontend converts the IST time the user
+     * picked into this form.) Stored as UTC.
+     */
+    public record CreateVisitRequest(
+            @NotBlank(message = "is required") String listingId,
+            @NotNull(message = "is required") @Future(message = "must be in the future") Instant slotTime) {}
 
     @PostMapping("/api/visits")
     @ResponseStatus(HttpStatus.CREATED)
     public void create(
-            @RequestBody CreateVisitRequest request, @AuthenticationPrincipal AuthenticatedUser principal) {
+            @Valid @RequestBody CreateVisitRequest request,
+            @AuthenticationPrincipal AuthenticatedUser principal) {
         Listing listing =
                 listingRepository
                         .findById(request.listingId())

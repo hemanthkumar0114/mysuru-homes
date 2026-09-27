@@ -2,6 +2,17 @@ spring:
   application:
     name: api
 
+  web:
+    error:
+      # So {"message": "..."} on our custom @ResponseStatus exceptions
+      # (EmailAlreadyRegisteredException, InvalidCredentialsException, etc.)
+      # actually reaches the frontend's error boxes instead of being stripped.
+      include-message: always
+      # Dev tools switch these on in development; never send Java stack
+      # traces or internal field/binding details to the browser.
+      include-stacktrace: never
+      include-binding-errors: never
+
   datasource:
     # Defaults match the dedicated app user created by backend/sql/setup.sql -
     # run that once in MySQL Workbench, no root password needed here.
@@ -25,9 +36,6 @@ spring:
 server:
   port: ${PORT:8080}
   error:
-    # So {"message": "..."} on our custom @ResponseStatus exceptions
-    # (EmailAlreadyRegisteredException, InvalidCredentialsException, etc.)
-    # actually reaches the frontend's error boxes instead of being stripped.
     include-message: always
 
 management:
