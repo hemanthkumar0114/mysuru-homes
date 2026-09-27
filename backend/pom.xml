@@ -110,6 +110,21 @@
 			<artifactId>spring-boot-starter-webmvc-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- In-memory database for the test suite only (see src/test/resources/application.yml) -
+		     production still runs on MySQL. Keeps `mvn test` fast and runnable with no local
+		     database setup at all. -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- Brings in RestTemplateBuilder, which spring-boot-resttestclient's TestRestTemplate
+		     needs but doesn't pull in by itself. -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-restclient</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>

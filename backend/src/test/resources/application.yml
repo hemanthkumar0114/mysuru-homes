@@ -1,0 +1,29 @@
+# Config for the automated test suite only (main/resources/application.yml is unaffected).
+# Runs against an in-memory H2 database instead of MySQL, so `mvn test` needs no local
+# database, no environment variables, and never touches real dev data. A fresh database
+# is created for the test JVM and thrown away when it exits.
+spring:
+  application:
+    name: api-test
+  web:
+    error:
+      include-message: always
+      include-stacktrace: never
+      include-binding-errors: never
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+
+app:
+  seed-demo-data: false
+  seed-localities: false
+  upload-dir: target/test-uploads
+  jwt:
+    secret: test-only-secret-not-for-production-use-1234567890
+    expiration-ms: 3600000
