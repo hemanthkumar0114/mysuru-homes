@@ -1,7 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { createListing } from '../api/client'
+import { createListing, uploadListingPhotos } from '../api/client'
 import { CheckIcon } from '../components/icons'
+
+const MAX_PHOTOS = 5
+const MAX_PHOTO_BYTES = 3 * 1024 * 1024 // must match PhotoStorageService on the backend
+const ALLOWED_PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
 const initialForm = {
   type: 'RENT',
@@ -29,11 +33,46 @@ const NEXT_STEPS = [
 export default function PostProperty() {
   const navigate = useNavigate()
   const [form, setForm] = useState(initialForm)
+  const [photos, setPhotos] = useState([]) // File[], at most MAX_PHOTOS
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
+  // One object URL per photo, for the thumbnails below. Recomputed only when the
+  // chosen files change (not on every render, which would leak a URL each time).
+  const previews = useMemo(() => photos.map((file) => URL.createObjectURL(file)), [photos])
+
+  // An object URL keeps its file's data in memory until revoked - free the previous
+  // batch whenever `previews` is replaced (including on unmount).
+  useEffect(() => () => previews.forEach((url) => URL.revokeObjectURL(url)), [previews])
+
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }))
+  }
+
+  function handlePhotoChange(e) {
+    const chosen = Array.from(e.target.files)
+    e.target.value = '' // lets the same file(s) be picked again after removing one
+
+    if (photos.length + chosen.length > MAX_PHOTOS) {
+      setError(`You can upload up to ${MAX_PHOTOS} photos.`)
+      return
+    }
+    const badType = chosen.find((f) => !ALLOWED_PHOTO_TYPES.includes(f.type))
+    if (badType) {
+      setError(`"${badType.name}" isn't a JPEG, PNG or WebP image.`)
+      return
+    }
+    const tooBig = chosen.find((f) => f.size > MAX_PHOTO_BYTES)
+    if (tooBig) {
+      setError(`"${tooBig.name}" is larger than 3MB.`)
+      return
+    }
+    setError('')
+    setPhotos((prev) => [...prev, ...chosen])
+  }
+
+  function removePhoto(index) {
+    setPhotos((prev) => prev.filter((_, i) => i !== index))
   }
 
   async function handleSubmit(e) {
@@ -41,7 +80,7 @@ export default function PostProperty() {
     setError('')
     setSubmitting(true)
     try {
-      await createListing({
+      const listing = await createListing({
         type: form.type,
         title: form.title,
         addressLine: form.addressLine,
@@ -52,8 +91,20 @@ export default function PostProperty() {
         bedrooms: form.bedrooms ? Number(form.bedrooms) : null,
         bathrooms: form.bathrooms ? Number(form.bathrooms) : null,
       })
+
+      // The listing is saved either way - a photo upload failure shouldn't lose it.
+      // It just goes to "My listings" with a note instead of a clean success message.
+      let photoWarning = ''
+      if (photos.length > 0) {
+        try {
+          await uploadListingPhotos(listing.id, photos)
+        } catch (err) {
+          photoWarning = ` Your photos didn't upload though: ${err.message}`
+        }
+      }
+
       // "state" is a note handed to the next page along with the navigation.
-      navigate('/my-listings', { state: { posted: form.title } })
+      navigate('/my-listings', { state: { posted: form.title, photoWarning } })
     } catch (err) {
       setError(err.message)
     } finally {
@@ -215,6 +266,45 @@ export default function PostProperty() {
                 />
               </div>
             </div>
+          </section>
+
+          <section className="form-section">
+            <h2>Photos (optional)</h2>
+            <p className="text-muted text-sm">
+              Up to {MAX_PHOTOS} photos, JPEG/PNG/WebP, 3MB each. Our field team will still take
+              their own photos when they verify the property.
+            </p>
+
+            {photos.length > 0 && (
+              <ul className="photo-picker-list">
+                {photos.map((file, index) => (
+                  <li key={`${file.name}-${index}`} className="photo-picker-item">
+                    <img src={previews[index]} alt="" />
+                    <button
+                      type="button"
+                      className="photo-picker-remove"
+                      aria-label={`Remove ${file.name}`}
+                      onClick={() => removePhoto(index)}
+                    >
+                      &times;
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {photos.length < MAX_PHOTOS && (
+              <div className="field">
+                <label htmlFor="photos">Add photos</label>
+                <input
+                  id="photos"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  onChange={handlePhotoChange}
+                />
+              </div>
+            )}
           </section>
 
           <button type="submit" className="btn btn-primary btn-block" disabled={submitting}>

@@ -14,7 +14,7 @@ export default function MyListings() {
   // null = still loading; otherwise { listings } or { error }.
   const [result, setResult] = useState(null)
   // Set by PostProperty when it sends the owner here after a submit.
-  const posted = useLocation().state?.posted
+  const { posted, photoWarning } = useLocation().state ?? {}
 
   useEffect(() => {
     fetchMyListings()
@@ -43,6 +43,7 @@ export default function MyListings() {
       {posted && (
         <p className="success-box notice" role="status">
           Submitted! &ldquo;{posted}&rdquo; is pending verification. Our field team will visit soon.
+          {photoWarning}
         </p>
       )}
 

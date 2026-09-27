@@ -9,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import tools.jackson.core.JacksonException;
 
 /**
@@ -66,6 +67,16 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         log.warn("Bad value for '{}': {}", ex.getName(), ex.getMessage());
         return badRequest(label(ex.getName()) + " is not valid. Please check it and try again.");
+    }
+
+    /**
+     * A file (or the whole request) is bigger than spring.servlet.multipart allows. Caught
+     * here rather than in the upload code, because Spring rejects an oversized upload before
+     * the controller method - and its own per-file 3MB check - ever runs.
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, String>> handleUploadTooLarge(MaxUploadSizeExceededException ex) {
+        return badRequest("That upload is too large. Each photo must be 3MB or smaller.");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

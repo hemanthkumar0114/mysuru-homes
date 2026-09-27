@@ -1,12 +1,14 @@
 package com.realestate.api.locality;
 
 import com.realestate.api.listing.Listing;
+import com.realestate.api.listing.ListingPhotoRepository;
 import com.realestate.api.listing.ListingRepository;
 import com.realestate.api.listing.ListingStatus;
 import com.realestate.api.listing.ListingSummary;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +22,7 @@ public class LocalityController {
 
     private final LocalityPageRepository localityPageRepository;
     private final ListingRepository listingRepository;
+    private final ListingPhotoRepository listingPhotoRepository;
 
     /** All localities with their rent range and live-listing count - powers the home page section. */
     @GetMapping("/api/localities")
@@ -56,6 +59,14 @@ public class LocalityController {
                 min,
                 max,
                 live.size(),
-                includeListings ? live.stream().map(ListingSummary::from).toList() : null);
+                includeListings ? withPhotos(live) : null);
+    }
+
+    private List<ListingSummary> withPhotos(List<Listing> listings) {
+        Map<String, List<String>> photos =
+                listingPhotoRepository.urlsByListingId(listings.stream().map(Listing::getId).toList());
+        return listings.stream()
+                .map(l -> ListingSummary.from(l, photos.getOrDefault(l.getId(), List.of())))
+                .toList();
     }
 }

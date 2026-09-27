@@ -23,6 +23,7 @@ export default function ListingDetail() {
   const [actionOk, setActionOk] = useState(false)
   const [slotTime, setSlotTime] = useState('')
   const [bookingVisit, setBookingVisit] = useState(false)
+  const [activePhoto, setActivePhoto] = useState(0)
 
   useEffect(() => {
     fetchListing(id)
@@ -102,6 +103,7 @@ export default function ListingDetail() {
 
   const isPg = listing.type === 'PG'
   const isLive = listing.status === 'LIVE'
+  const photos = listing.photoUrls ?? []
 
   return (
     <div className="container page">
@@ -113,7 +115,11 @@ export default function ListingDetail() {
       <div className="detail-layout">
         <div className="detail-main">
           <div className="detail-media">
-            <HomeIcon />
+            {photos.length > 0 ? (
+              <img src={photos[activePhoto]} alt="" className="detail-photo" />
+            ) : (
+              <HomeIcon />
+            )}
             <span className="badge badge-type badge-overlay">
               {isPg ? 'PG / Co-living' : 'For rent'}
             </span>
@@ -128,6 +134,23 @@ export default function ListingDetail() {
               </span>
             )}
           </div>
+
+          {photos.length > 1 && (
+            <div className="detail-thumbs" role="tablist" aria-label="Property photos">
+              {photos.map((url, index) => (
+                <button
+                  key={url}
+                  type="button"
+                  role="tab"
+                  aria-selected={index === activePhoto}
+                  className={index === activePhoto ? 'detail-thumb active' : 'detail-thumb'}
+                  onClick={() => setActivePhoto(index)}
+                >
+                  <img src={url} alt={`Photo ${index + 1}`} />
+                </button>
+              ))}
+            </div>
+          )}
 
           <h1 className="detail-title">{listing.title}</h1>
           <p className="listing-meta text-muted detail-locality">

@@ -109,6 +109,24 @@ export function fetchMyListings() {
   return request('/api/my-listings')
 }
 
+// Photos go through fetch() directly (not the shared `request` helper), because a
+// FormData body must NOT get a "Content-Type: application/json" header - the browser
+// sets its own (with the multipart boundary) when it sees a FormData body.
+export async function uploadListingPhotos(listingId, files) {
+  const form = new FormData()
+  for (const file of files) form.append('files', file)
+
+  const headers = {}
+  const token = getToken()
+  if (token) headers.Authorization = `Bearer ${token}`
+
+  const res = await fetch(`/api/listings/${listingId}/photos`, { method: 'POST', headers, body: form })
+  if (!res.ok) {
+    throw new Error(await friendlyErrorMessage(res))
+  }
+  return res.json()
+}
+
 // ---- Tenant actions ----
 
 export function createEnquiry(listingId) {

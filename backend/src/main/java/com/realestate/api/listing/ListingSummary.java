@@ -1,6 +1,7 @@
 package com.realestate.api.listing;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /** Flat response shape for search/list views - keeps entities out of the API surface. */
 public record ListingSummary(
@@ -13,9 +14,15 @@ public record ListingSummary(
         Double lat,
         Double lng,
         boolean verified,
-        ListingStatus status) {
+        ListingStatus status,
+        List<String> photoUrls) {
 
+    /** For when the caller hasn't loaded photos - e.g. right after creating a listing. */
     public static ListingSummary from(Listing listing) {
+        return from(listing, List.of());
+    }
+
+    public static ListingSummary from(Listing listing, List<String> photoUrls) {
         return new ListingSummary(
                 listing.getId(),
                 listing.getTitle(),
@@ -26,6 +33,7 @@ public record ListingSummary(
                 listing.getLat(),
                 listing.getLng(),
                 listing.getVerifiedAt() != null,
-                listing.getStatus());
+                listing.getStatus(),
+                photoUrls);
     }
 }

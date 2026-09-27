@@ -5,11 +5,12 @@ import { BedIcon, CheckIcon, HomeIcon, PinIcon } from './icons'
 export default function ListingCard({ listing }) {
   const isPg = listing.type === 'PG'
   const beds = listing.bedrooms
+  const photo = listing.photoUrls?.[0]
 
   return (
     <Link to={`/listings/${listing.id}`} className="card listing-card">
       <div className="listing-card-media">
-        <HomeIcon />
+        {photo ? <img src={photo} alt="" className="listing-card-photo" /> : <HomeIcon />}
         <span className="badge badge-type badge-overlay">
           {isPg ? 'PG / Co-living' : 'For rent'}
         </span>

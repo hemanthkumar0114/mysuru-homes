@@ -60,11 +60,11 @@ public class SecurityConfig {
                                         // anonymously and clobbers a real 403 with a 401.
                                         .requestMatchers("/error")
                                         .permitAll()
-                                        .requestMatchers(HttpMethod.GET, "/api/listings/**", "/api/localities/**")
+                                        .requestMatchers(HttpMethod.GET, "/api/listings/**", "/api/localities/**", "/uploads/**")
                                         .permitAll()
                                         .requestMatchers("/api/admin/**")
                                         .hasRole("ADMIN")
-                                        .requestMatchers(HttpMethod.POST, "/api/listings")
+                                        .requestMatchers(HttpMethod.POST, "/api/listings", "/api/listings/*/photos")
                                         .hasRole("OWNER")
                                         .requestMatchers("/api/my-listings", "/api/my-listings/**")
                                         .hasRole("OWNER")

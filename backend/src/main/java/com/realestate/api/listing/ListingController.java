@@ -33,6 +33,7 @@ public class ListingController {
     private final UserRepository userRepository;
     private final EnquiryRepository enquiryRepository;
     private final VisitBookingRepository visitBookingRepository;
+    private final ListingPhotoRepository listingPhotoRepository;
 
     /**
      * GET /api/listings                          -> all live listings, newest first
@@ -70,7 +71,11 @@ public class ListingController {
                     listingRepository.search(
                             ListingStatus.LIVE, localityFilter, type, minRent, maxRent, bedrooms);
         }
-        return results.stream().map(ListingSummary::from).toList();
+        Map<String, List<String>> photos =
+                listingPhotoRepository.urlsByListingId(results.stream().map(Listing::getId).toList());
+        return results.stream()
+                .map(l -> ListingSummary.from(l, photos.getOrDefault(l.getId(), List.of())))
+                .toList();
     }
 
     /**
@@ -87,7 +92,10 @@ public class ListingController {
         if (listing.getStatus() != ListingStatus.LIVE && !canSeeHidden(listing, principal)) {
             throw new ListingNotFoundException(id);
         }
-        return ListingSummary.from(listing);
+        List<String> photos = listingPhotoRepository.findByListingIdOrderBySortOrderAsc(id).stream()
+                .map(ListingPhoto::getUrl)
+                .toList();
+        return ListingSummary.from(listing, photos);
     }
 
     private static boolean canSeeHidden(Listing listing, AuthenticatedUser principal) {

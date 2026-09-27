@@ -38,6 +38,12 @@ server:
   error:
     include-message: always
 
+spring.servlet.multipart:
+  # A bit above the 3MB-per-photo app limit (see ListingPhotoController) so a
+  # request with several photos still fits comfortably.
+  max-file-size: 4MB
+  max-request-size: 20MB
+
 management:
   endpoints:
     web:
@@ -48,6 +54,11 @@ app:
   # Seeds a few sample listings on first run so the UI isn't empty. Safe to
   # leave on - the seeder checks the table is empty before inserting anything.
   seed-demo-data: true
+  # Seeds the Mysuru-corridor locality pages on first run - same "only if empty" rule.
+  seed-localities: true
+  # Folder where uploaded listing photos are stored, relative to where the jar
+  # runs unless given as an absolute path. Served back at /uploads/**.
+  upload-dir: ${UPLOAD_DIR:uploads}
   jwt:
     # Must be set via the JWT_SECRET env var - no default, so the app
     # refuses to start with a known/guessable secret.
