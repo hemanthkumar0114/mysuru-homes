@@ -51,4 +51,9 @@ public class VisitBooking {
 
     @Builder.Default
     private Instant createdAt = Instant.now();
+
+    /** Still waiting or confirmed - i.e. it can still be confirmed or cancelled. */
+    public boolean isOpen() {
+        return status == VisitStatus.REQUESTED || status == VisitStatus.CONFIRMED;
+    }
 }

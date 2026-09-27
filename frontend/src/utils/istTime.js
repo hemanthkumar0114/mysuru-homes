@@ -30,6 +30,21 @@ export function nowIstForInput() {
   return new Date(Date.now() + IST_OFFSET_MS).toISOString().slice(0, 16)
 }
 
+// "2026-09-27T04:12:00Z" -> "27 Sept 2026, 9:42 am IST": a moment in India time,
+// whatever time zone the visitor's device is set to.
+export function formatIstDateTime(isoInstant) {
+  const text = new Date(isoInstant).toLocaleString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
+  return `${text} IST`
+}
+
 // "2026-09-11T06:26:05Z" -> "11 Sept 2026", shown in India time.
 export function formatIstDate(isoInstant) {
   return new Date(isoInstant).toLocaleDateString('en-IN', {

@@ -16,6 +16,9 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -74,5 +77,34 @@ public class VisitBookingController {
 
         visitBookingRepository.save(
                 VisitBooking.builder().listing(listing).tenant(tenant).slotTime(request.slotTime()).build());
+    }
+
+    /** The logged-in user's own visit requests. */
+    @GetMapping("/api/visits/mine")
+    @Transactional(readOnly = true)
+    public List<VisitView> mine(@AuthenticationPrincipal AuthenticatedUser principal) {
+        return visitBookingRepository.findForTenant(principal.id()).stream().map(VisitView::from).toList();
+    }
+
+    /**
+     * Cancel one of your own open requests. A request that belongs to someone else is
+     * reported as "not found" - the same answer as an id that doesn't exist.
+     */
+    @PostMapping("/api/visits/{id}/cancel")
+    @Transactional
+    public VisitView cancel(@PathVariable String id, @AuthenticationPrincipal AuthenticatedUser principal) {
+        VisitBooking visit =
+                visitBookingRepository
+                        .findByIdForTenant(id, principal.id())
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "We couldn't find that visit request."));
+
+        if (!visit.isOpen()) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "This visit request is already " + visit.getStatus().name().toLowerCase() + ", so it can't be cancelled.");
+        }
+
+        visit.setStatus(VisitStatus.CANCELLED);
+        return VisitView.from(visit);
     }
 }

@@ -126,3 +126,29 @@ export function fetchPendingListings() {
 export function verifyListing(id) {
   return request(`/api/admin/listings/${id}/verify`, { method: 'POST' })
 }
+
+export function fetchAdminVisits(status) {
+  return request(`/api/admin/visits${status ? `?status=${status}` : ''}`)
+}
+
+export function confirmVisit(id) {
+  return request(`/api/admin/visits/${id}/confirm`, { method: 'POST' })
+}
+
+export function cancelVisitAsAdmin(id) {
+  return request(`/api/admin/visits/${id}/cancel`, { method: 'POST' })
+}
+
+// ---- Visits and owner activity ----
+
+export function fetchMyVisits() {
+  return request('/api/visits/mine')
+}
+
+export function cancelMyVisit(id) {
+  return request(`/api/visits/${id}/cancel`, { method: 'POST' })
+}
+
+export function fetchListingActivity(listingId) {
+  return request(`/api/my-listings/${listingId}/activity`)
+}

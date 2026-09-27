@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { fetchMyListings } from '../api/client'
 import { HomeIcon, PinIcon } from '../components/icons'
-import { formatRent, typeLabel } from '../utils/format'
+import { formatRent, pluralize, typeLabel } from '../utils/format'
 
 const STATUS = {
   DRAFT: { label: 'Pending verification', className: 'badge-pending' },
@@ -82,6 +82,13 @@ export default function MyListings() {
                   <p className="listing-meta text-muted">
                     <PinIcon />
                     {listing.locality} · {typeLabel(listing.type)}
+                  </p>
+                  <p className="my-listing-activity">
+                    <span>{pluralize(listing.enquiryCount, 'enquiry', 'enquiries')}</span>
+                    <span>{pluralize(listing.visitCount, 'visit request')}</span>
+                    <Link to={`/my-listings/${listing.id}`} className="activity-link">
+                      View details
+                    </Link>
                   </p>
                 </div>
 

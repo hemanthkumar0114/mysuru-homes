@@ -66,7 +66,7 @@ public class SecurityConfig {
                                         .hasRole("ADMIN")
                                         .requestMatchers(HttpMethod.POST, "/api/listings")
                                         .hasRole("OWNER")
-                                        .requestMatchers("/api/my-listings")
+                                        .requestMatchers("/api/my-listings", "/api/my-listings/**")
                                         .hasRole("OWNER")
                                         .anyRequest()
                                         .authenticated())

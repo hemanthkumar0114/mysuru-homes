@@ -1369,3 +1369,171 @@ th {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- Visits, owner activity, admin visit list ---------- */
+
+.btn-danger {
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+  color: #ffffff;
+}
+
+.btn-danger:hover {
+  background: #991b1b;
+  border-color: #991b1b;
+}
+
+.visit-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+}
+
+.visit-item-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.visit-item-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+  flex: none;
+}
+
+.visit-item-side .badge {
+  margin-top: 0;
+}
+
+.visit-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.visit-time {
+  margin: var(--space-1) 0 0;
+  font-weight: 600;
+  color: var(--color-primary-dark);
+}
+
+.review-head .visit-time {
+  flex: none;
+  margin: 0;
+  text-align: right;
+}
+
+.my-listing-activity {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+.activity-link {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.activity-link:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+}
+
+.activity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.activity-card h2 {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-lg);
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.activity-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.activity-list li:first-child {
+  border-top: 0;
+}
+
+.activity-list p {
+  margin: 0;
+}
+
+.activity-name {
+  font-weight: 600;
+}
+
+.activity-list .badge {
+  margin-top: 0;
+}
+
+.activity-note {
+  margin-top: var(--space-4);
+}
+
+.tab-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.tab {
+  padding: 7px var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.tab:hover {
+  background: var(--color-hover);
+}
+
+.tab.active {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #ffffff;
+}
+
+@media (max-width: 560px) {
+  .visit-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .visit-item-side {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .review-head .visit-time {
+    text-align: left;
+  }
+}

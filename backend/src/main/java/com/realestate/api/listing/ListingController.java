@@ -1,12 +1,16 @@
 package com.realestate.api.listing;
 
+import com.realestate.api.enquiry.EnquiryRepository;
 import com.realestate.api.security.AuthenticatedUser;
 import com.realestate.api.user.User;
 import com.realestate.api.user.UserRepository;
 import com.realestate.api.user.UserRole;
+import com.realestate.api.visit.VisitBookingRepository;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.http.HttpStatus;
@@ -27,6 +31,8 @@ public class ListingController {
 
     private final ListingRepository listingRepository;
     private final UserRepository userRepository;
+    private final EnquiryRepository enquiryRepository;
+    private final VisitBookingRepository visitBookingRepository;
 
     /**
      * GET /api/listings                          -> all live listings, newest first
@@ -125,8 +131,14 @@ public class ListingController {
     /** The logged-in owner's own listings, in every status (DRAFT/LIVE/EXPIRED). */
     @GetMapping("/api/my-listings")
     public List<OwnerListingSummary> myListings(@AuthenticationPrincipal AuthenticatedUser principal) {
+        Map<String, Long> enquiries = countsById(enquiryRepository.countByOwner(principal.id()));
+        Map<String, Long> visits = countsById(visitBookingRepository.countByOwner(principal.id()));
         return listingRepository.findByOwnerIdOrderByCreatedAtDesc(principal.id()).stream()
-                .map(OwnerListingSummary::from)
+                .map(l -> OwnerListingSummary.from(l, enquiries.getOrDefault(l.getId(), 0L), visits.getOrDefault(l.getId(), 0L)))
                 .toList();
+    }
+
+    private static Map<String, Long> countsById(List<ListingCount> counts) {
+        return counts.stream().collect(Collectors.toMap(ListingCount::listingId, ListingCount::count));
     }
 }

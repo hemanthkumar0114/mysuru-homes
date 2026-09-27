@@ -40,10 +40,21 @@ export default function Navbar() {
             </>
           )}
 
-          {isLoggedIn && user.role === 'ADMIN' && (
-            <NavLink to="/admin" className={navClass}>
-              Admin review
+          {isLoggedIn && user.role === 'TENANT' && (
+            <NavLink to="/my-visits" className={navClass}>
+              My visits
             </NavLink>
+          )}
+
+          {isLoggedIn && user.role === 'ADMIN' && (
+            <>
+              <NavLink to="/admin" end className={navClass}>
+                Admin review
+              </NavLink>
+              <NavLink to="/admin/visits" className={navClass}>
+                Visit requests
+              </NavLink>
+            </>
           )}
 
           {isLoggedIn ? (

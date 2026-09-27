@@ -16,3 +16,25 @@ export function bedroomsLabel(bedrooms) {
 export function typeLabel(type) {
   return type === 'PG' ? 'PG / Co-living' : 'Rental'
 }
+
+// Visit request statuses, worded for people. `tone` picks the badge colour.
+const VISIT_STATUS = {
+  REQUESTED: { label: 'Awaiting confirmation', tone: 'badge-pending' },
+  CONFIRMED: { label: 'Confirmed', tone: 'badge-verified' },
+  COMPLETED: { label: 'Completed', tone: 'badge-type' },
+  CANCELLED: { label: 'Cancelled', tone: 'badge-muted' },
+}
+
+export function visitStatus(status) {
+  return VISIT_STATUS[status] ?? { label: status, tone: 'badge-muted' }
+}
+
+// A request that can still be confirmed or cancelled.
+export function isOpenVisit(status) {
+  return status === 'REQUESTED' || status === 'CONFIRMED'
+}
+
+// pluralize(1, 'enquiry', 'enquiries') -> "1 enquiry"; pluralize(3, 'visit request') -> "3 visit requests"
+export function pluralize(count, singular, plural = `${singular}s`) {
+  return `${count} ${count === 1 ? singular : plural}`
+}

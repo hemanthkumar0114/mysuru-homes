@@ -2,6 +2,7 @@ package com.realestate.api.listing;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,6 +12,8 @@ public interface ListingRepository extends JpaRepository<Listing, String> {
     List<Listing> findByStatus(ListingStatus status);
 
     List<Listing> findByOwnerIdOrderByCreatedAtDesc(String ownerId);
+
+    Optional<Listing> findByIdAndOwnerId(String id, String ownerId);
 
     /**
      * One query for every filter combination: each "(:x IS NULL OR ...)" line
