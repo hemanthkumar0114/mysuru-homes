@@ -22,6 +22,7 @@ export default function ListingDetail() {
   const [actionMessage, setActionMessage] = useState('')
   const [actionOk, setActionOk] = useState(false)
   const [slotTime, setSlotTime] = useState('')
+  const [bookingVisit, setBookingVisit] = useState(false)
 
   useEffect(() => {
     fetchListing(id)
@@ -60,11 +61,14 @@ export default function ListingDetail() {
       showResult(false, 'Please choose a date and time in the future.')
       return
     }
+    setBookingVisit(true)
     try {
       await bookVisit(id, istInputToInstant(slotTime))
       showResult(true, 'Visit requested. You will be contacted to confirm the slot.')
     } catch (err) {
       showResult(false, err.message)
+    } finally {
+      setBookingVisit(false)
     }
   }
 
@@ -213,8 +217,8 @@ export default function ListingDetail() {
                     Times are in India Standard Time (IST).
                   </span>
                 </div>
-                <button type="submit" className="btn btn-block">
-                  Request visit
+                <button type="submit" className="btn btn-block" disabled={bookingVisit}>
+                  {bookingVisit ? 'Requesting…' : 'Request visit'}
                 </button>
               </form>
 
