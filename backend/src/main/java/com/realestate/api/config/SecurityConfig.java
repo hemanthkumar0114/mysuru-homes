@@ -23,7 +23,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  * Bearer <token>" header, verified per-request.
  *
  * Route rules:
- *  - Public: browsing listings (GET), auth endpoints, health check.
+ *  - Public: browsing listings and locality pages (GET), auth endpoints, health check.
  *  - OWNER only: posting a listing, viewing "my listings".
  *  - ADMIN only: the moderation queue.
  *  - Everything else just needs to be logged in (enquiries, visit booking).
@@ -60,7 +60,7 @@ public class SecurityConfig {
                                         // anonymously and clobbers a real 403 with a 401.
                                         .requestMatchers("/error")
                                         .permitAll()
-                                        .requestMatchers(HttpMethod.GET, "/api/listings/**")
+                                        .requestMatchers(HttpMethod.GET, "/api/listings/**", "/api/localities/**")
                                         .permitAll()
                                         .requestMatchers("/api/admin/**")
                                         .hasRole("ADMIN")

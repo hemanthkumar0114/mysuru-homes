@@ -8,6 +8,13 @@ export function formatRent(amount) {
   })
 }
 
+// "₹9,000 – ₹14,000 / month", "₹9,000 / month" when min = max, null when there is no rent yet.
+export function rentRangeLabel(min, max) {
+  if (min == null || max == null) return null
+  if (Number(min) === Number(max)) return `₹${formatRent(min)} / month`
+  return `₹${formatRent(min)} – ₹${formatRent(max)} / month`
+}
+
 export function bedroomsLabel(bedrooms) {
   if (bedrooms === 0) return 'Studio'
   return `${bedrooms} ${bedrooms === 1 ? 'bedroom' : 'bedrooms'}`

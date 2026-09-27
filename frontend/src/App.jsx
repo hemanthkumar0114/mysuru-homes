@@ -7,6 +7,7 @@ import AdminVisits from './pages/AdminVisits'
 import Home from './pages/Home'
 import ListingActivity from './pages/ListingActivity'
 import ListingDetail from './pages/ListingDetail'
+import LocalityPage from './pages/LocalityPage'
 import Login from './pages/Login'
 import MyListings from './pages/MyListings'
 import MyVisits from './pages/MyVisits'
@@ -21,6 +22,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/listings/:id" element={<ListingDetail />} />
+          <Route path="/localities/:slug" element={<LocalityPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route

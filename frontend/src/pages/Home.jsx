@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import ListingCard from '../components/ListingCard'
+import LocalityLinks from '../components/LocalityLinks'
 import { fetchListings } from '../api/client'
 
 const EMPTY_FILTERS = {
@@ -201,6 +202,10 @@ export default function Home() {
             )}
           </>
         )}
+      </div>
+
+      <div className="container page">
+        <LocalityLinks />
       </div>
     </>
   )

@@ -72,6 +72,14 @@ export function fetchListing(id) {
   return request(`/api/listings/${id}`)
 }
 
+export function fetchLocalities() {
+  return request('/api/localities')
+}
+
+export function fetchLocality(slug) {
+  return request(`/api/localities/${encodeURIComponent(slug)}`)
+}
+
 // ---- Auth ----
 
 export function registerUser(data) {

@@ -16,6 +16,21 @@ public interface ListingRepository extends JpaRepository<Listing, String> {
     Optional<Listing> findByIdAndOwnerId(String id, String ownerId);
 
     /**
+     * Listings whose locality text names this area, case-insensitive: an exact match
+     * ("Vijayanagar") or the name followed by a space and more text ("Vijayanagar 2nd
+     * Stage"). A plain substring/prefix match would also catch an unrelated area whose
+     * name happens to start the same way (e.g. "Hebballi" for "Hebbal"), which this avoids.
+     */
+    @Query(
+            """
+            SELECT l FROM Listing l
+            WHERE l.status = :status
+              AND (LOWER(l.locality) = LOWER(:name) OR LOWER(l.locality) LIKE LOWER(CONCAT(:name, ' %')))
+            ORDER BY l.createdAt DESC
+            """)
+    List<Listing> findLiveByLocalityPrefix(@Param("status") ListingStatus status, @Param("name") String name);
+
+    /**
      * One query for every filter combination: each "(:x IS NULL OR ...)" line
      * switches itself off when the caller passed null for that filter.
      */
