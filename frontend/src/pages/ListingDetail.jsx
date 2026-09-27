@@ -9,7 +9,7 @@ import {
   PinIcon,
   ShieldIcon,
 } from '../components/icons'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 import { bedroomsLabel, formatRent, typeLabel } from '../utils/format'
 import { isFutureIst, istInputToInstant, nowIstForInput } from '../utils/istTime'
 

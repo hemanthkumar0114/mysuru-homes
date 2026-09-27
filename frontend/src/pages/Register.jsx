@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CheckIcon } from '../components/icons'
 import PasswordField from '../components/PasswordField'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 
 const ROLES = [
   { value: 'TENANT', title: 'Tenant', description: 'I want to rent a home or PG' },

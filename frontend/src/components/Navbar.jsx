@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 
 // NavLink is Link plus "am I the current page?". We use it to highlight the
 // active item; `end` on "/" stops Browse being highlighted on every page.

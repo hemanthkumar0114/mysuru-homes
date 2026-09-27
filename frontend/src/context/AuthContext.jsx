@@ -1,9 +1,8 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getToken, loginUser, registerUser, setToken } from '../api/client'
+import { AuthContext } from './useAuth'
 
 const USER_KEY = 'mysuruhomes_user'
-
-const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
@@ -50,12 +49,4 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   )
-}
-
-export function useAuth() {
-  const ctx = useContext(AuthContext)
-  if (!ctx) {
-    throw new Error('useAuth must be used inside an AuthProvider')
-  }
-  return ctx
 }
