@@ -12,7 +12,8 @@ public record ListingSummary(
         Integer bedrooms,
         Double lat,
         Double lng,
-        boolean verified) {
+        boolean verified,
+        ListingStatus status) {
 
     public static ListingSummary from(Listing listing) {
         return new ListingSummary(
@@ -24,6 +25,7 @@ public record ListingSummary(
                 listing.getBedrooms(),
                 listing.getLat(),
                 listing.getLng(),
-                listing.getVerifiedAt() != null);
+                listing.getVerifiedAt() != null,
+                listing.getStatus());
     }
 }

@@ -101,6 +101,7 @@ export default function ListingDetail() {
   }
 
   const isPg = listing.type === 'PG'
+  const isLive = listing.status === 'LIVE'
 
   return (
     <div className="container page">
@@ -179,7 +180,12 @@ export default function ListingDetail() {
             <span className="price-unit"> / month</span>
           </p>
 
-          {!isLoggedIn ? (
+          {!isLive ? (
+            <p className="text-muted text-sm">
+              This listing isn&apos;t live yet, so it can&apos;t take enquiries or visits. Only you
+              (the owner) and our admins can see this page.
+            </p>
+          ) : !isLoggedIn ? (
             <div className="stack">
               <p className="text-muted text-sm">
                 Log in to tell the owner you&apos;re interested or to book a visit.

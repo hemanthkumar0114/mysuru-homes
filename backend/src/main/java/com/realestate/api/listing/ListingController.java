@@ -3,12 +3,14 @@ package com.realestate.api.listing;
 import com.realestate.api.security.AuthenticatedUser;
 import com.realestate.api.user.User;
 import com.realestate.api.user.UserRepository;
+import com.realestate.api.user.UserRole;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -65,12 +67,29 @@ public class ListingController {
         return results.stream().map(ListingSummary::from).toList();
     }
 
+    /**
+     * Public for LIVE listings. A DRAFT (or EXPIRED) listing is visible only to its
+     * owner and to admins; everyone else gets the same 404 as a listing that doesn't
+     * exist, so the API never confirms that a hidden listing is there.
+     * The route is public, but JwtAuthFilter still reads a token if one is sent,
+     * so "principal" is filled in for logged-in callers and null for anonymous ones.
+     */
     @GetMapping("/api/listings/{id}")
-    public ListingSummary getOne(@PathVariable String id) {
-        return listingRepository
-                .findById(id)
-                .map(ListingSummary::from)
-                .orElseThrow(() -> new ListingNotFoundException(id));
+    @Transactional(readOnly = true)
+    public ListingSummary getOne(@PathVariable String id, @AuthenticationPrincipal AuthenticatedUser principal) {
+        Listing listing = listingRepository.findById(id).orElseThrow(() -> new ListingNotFoundException(id));
+        if (listing.getStatus() != ListingStatus.LIVE && !canSeeHidden(listing, principal)) {
+            throw new ListingNotFoundException(id);
+        }
+        return ListingSummary.from(listing);
+    }
+
+    private static boolean canSeeHidden(Listing listing, AuthenticatedUser principal) {
+        if (principal == null) {
+            return false;
+        }
+        return UserRole.ADMIN.name().equals(principal.role())
+                || listing.getOwner().getId().equals(principal.id());
     }
 
     /** Owner submits a new property. It starts as DRAFT until an admin verifies it. */

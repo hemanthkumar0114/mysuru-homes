@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface EnquiryRepository extends JpaRepository<Enquiry, String> {
     List<Enquiry> findByListingIdAndCreatedAtAfter(String listingId, Instant since);
+
+    boolean existsByListingIdAndTenantId(String listingId, String tenantId);
 }
