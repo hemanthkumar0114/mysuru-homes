@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom'
+import { resolveMediaUrl } from '../api/client'
 import { bedroomsLabel, formatRent } from '../utils/format'
 import { BedIcon, CheckIcon, HomeIcon, PinIcon } from './icons'
 
 export default function ListingCard({ listing }) {
   const isPg = listing.type === 'PG'
   const beds = listing.bedrooms
-  const photo = listing.photoUrls?.[0]
+  const photo = resolveMediaUrl(listing.photoUrls?.[0])
 
   return (
     <Link to={`/listings/${listing.id}`} className="card listing-card">

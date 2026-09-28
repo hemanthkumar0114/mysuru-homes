@@ -129,12 +129,21 @@ reads them directly; there's no `.env` file loader wired up).
 | `PORT` | No (default `8080`) | Backend HTTP port |
 | `JWT_EXPIRATION_MS` | No (default `86400000` = 24h) | Token lifetime |
 | `UPLOAD_DIR` | No (default `uploads`) | Where listing photos are stored on disk |
+| `ALLOWED_ORIGINS` | No (default `http://localhost:5173`) | Comma-separated browser origins allowed to call the API (CORS) |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | No | Creates the one admin account on first run — see [Demo accounts](#demo-accounts) |
+| `DEMO_OWNER_EMAIL` / `DEMO_OWNER_PASSWORD` | No | Optional demo OWNER account + sample listings |
+| `DEMO_TENANT_EMAIL` / `DEMO_TENANT_PASSWORD` | No | Optional demo TENANT account |
+| `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_UPLOAD_PRESET` | No | Route uploaded photos to Cloudinary instead of local disk (see [DEPLOY.md](DEPLOY.md)) |
 
 PowerShell (per terminal session):
 ```powershell
 $env:DB_PASSWORD = "your-password-from-setup.sql"
 $env:JWT_SECRET = "a-long-random-string-at-least-32-characters"
+$env:ADMIN_EMAIL = "admin@example.com"
+$env:ADMIN_PASSWORD = "pick-your-own-password"
 ```
+
+Deploying this publicly? See [DEPLOY.md](DEPLOY.md) for the full Aiven/Render/Netlify walkthrough.
 
 ### 3. Backend
 
@@ -163,14 +172,21 @@ proxied to the backend on `:8080` (see `frontend/vite.config.js`).
 
 ## Demo accounts
 
-Seeded automatically the first time the backend starts against an empty
-database:
+There are no hardcoded demo passwords — a public deployment must not ship a
+guessable admin login. Instead, `DemoDataSeeder` creates accounts from
+environment variables the first time the backend starts against an empty
+database, and only creates the ones whose env vars you actually set:
 
-| Email | Password | Role |
+| Env vars | Role | Notes |
 |---|---|---|
-| admin@mysuruhomes.local | admin1234 | ADMIN — moderation queue, visit requests |
-| owner@mysuruhomes.local | owner1234 | OWNER — has demo listings already, can post more |
-| tenant@mysuruhomes.local | tenant1234 | TENANT — browse, enquire, book/cancel visits |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | ADMIN | Moderation queue, visit requests. The only way to get an admin account — it can't be created by registering through the UI. |
+| `DEMO_OWNER_EMAIL` / `DEMO_OWNER_PASSWORD` | OWNER | Comes with a couple of sample listings (one already verified/LIVE, one still DRAFT) - only seeded if *both* the owner and admin pairs above are set. |
+| `DEMO_TENANT_EMAIL` / `DEMO_TENANT_PASSWORD` | TENANT | Browse, enquire, book/cancel visits. |
+
+For local dev, set at least `ADMIN_EMAIL`/`ADMIN_PASSWORD` alongside
+`DB_PASSWORD`/`JWT_SECRET` in step 2 above - otherwise you'll have no way to
+reach the admin moderation queue (TENANT/OWNER accounts can still be created
+normally by registering through the UI).
 
 ## Running tests
 
@@ -201,7 +217,9 @@ cd frontend && npm test        # 31 tests: formatRent, IST time helpers,
 ```
 real-estate project/
 ├── run-tests.sh / run-tests.ps1   Run the whole test suite in one command
+├── DEPLOY.md                       Aiven/Render/Netlify deployment walkthrough
 ├── backend/
+│   ├── Dockerfile                    Multi-stage build for Render
 │   ├── sql/setup.sql                One-time MySQL database + user setup
 │   ├── .env.example                  Reference for required env vars
 │   └── src/
@@ -219,8 +237,9 @@ real-estate project/
 │       │                     demo/locality seeding, error handling
 │       └── test/java/com/realestate/api/   JUnit test suite (see above)
 ├── frontend/
+│   ├── netlify.toml                   Build settings + SPA redirect for Netlify
 │   └── src/
-│       ├── api/client.js             Every fetch() call to the backend
+│       ├── api/client.js             Every fetch() call to the backend, VITE_API_URL
 │       ├── context/AuthContext.jsx    Who's logged in, JWT storage
 │       ├── components/                Navbar, listing card, route guard, ...
 │       ├── pages/                     One file per screen
@@ -251,8 +270,12 @@ _Add screenshots here before sharing this repo — e.g. drop image files into
 - Schema is managed by Hibernate's `ddl-auto: update`, which is fine for a
   single local database but should be replaced with Flyway/Liquibase
   migrations before this ever points at a shared or production database.
-- Listing photos are stored on local disk (see `PhotoStorageService`) —
-  fine for one server, but would need to move to S3/Cloud Storage before
-  running on more than one instance.
+- Listing photos are stored on local disk by default (see
+  `PhotoStorageService`) — fine for one server, but a host with ephemeral
+  disk (e.g. Render's free tier) loses them on every restart. Set
+  `CLOUDINARY_CLOUD_NAME`/`CLOUDINARY_UPLOAD_PRESET` to route photos to
+  Cloudinary's free tier instead (see [DEPLOY.md](DEPLOY.md)); either way,
+  this would need to move to a proper object store (S3/Cloud
+  Storage/Cloudinary) before running on more than one instance.
 - No WhatsApp notifications or payments (both explicitly out of scope for
   this phase).

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { bookVisit, createEnquiry, fetchListing } from '../api/client'
+import { bookVisit, createEnquiry, fetchListing, resolveMediaUrl } from '../api/client'
 import {
   ArrowLeftIcon,
   BedIcon,
@@ -124,7 +124,7 @@ export default function ListingDetail() {
         <div className="detail-main">
           <div className="detail-media">
             {photos.length > 0 ? (
-              <img src={photos[activePhoto]} alt="" className="detail-photo" />
+              <img src={resolveMediaUrl(photos[activePhoto])} alt="" className="detail-photo" />
             ) : (
               <HomeIcon />
             )}
@@ -154,7 +154,7 @@ export default function ListingDetail() {
                   className={index === activePhoto ? 'detail-thumb active' : 'detail-thumb'}
                   onClick={() => setActivePhoto(index)}
                 >
-                  <img src={url} alt={`Photo ${index + 1}`} />
+                  <img src={resolveMediaUrl(url)} alt={`Photo ${index + 1}`} />
                 </button>
               ))}
             </div>

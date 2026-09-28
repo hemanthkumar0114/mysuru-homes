@@ -1,7 +1,20 @@
-// All calls go through /api/*, which Vite proxies to the Spring Boot
-// server on :8080 during development (see vite.config.js).
+// In dev, calls go through /api/* and /uploads/*, which Vite proxies to the
+// Spring Boot server on :8080 (see vite.config.js). In production the
+// frontend (Netlify) and backend (Render) are on different domains, so
+// VITE_API_URL must be set at build time to the backend's full URL - see
+// DEPLOY.md. Left empty, relative paths still work for same-origin setups.
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? ''
 
 const TOKEN_KEY = 'mysuruhomes_token'
+
+// Listing photo URLs come back from the API as either a path relative to the
+// backend (local-disk storage) or an already-absolute URL (Cloudinary) - see
+// PhotoStorageService. Relative ones need the backend origin prefixed so the
+// browser doesn't request them from the frontend's own domain.
+export function resolveMediaUrl(url) {
+  if (!url) return url
+  return /^https?:\/\//.test(url) ? url : `${API_BASE_URL}${url}`
+}
 
 export function getToken() {
   return localStorage.getItem(TOKEN_KEY)
@@ -41,7 +54,7 @@ async function request(path, options = {}) {
     headers.Authorization = `Bearer ${token}`
   }
 
-  const res = await fetch(path, { ...options, headers })
+  const res = await fetch(`${API_BASE_URL}${path}`, { ...options, headers })
 
   if (!res.ok) {
     throw new Error(await friendlyErrorMessage(res))
@@ -120,7 +133,7 @@ export async function uploadListingPhotos(listingId, files) {
   const token = getToken()
   if (token) headers.Authorization = `Bearer ${token}`
 
-  const res = await fetch(`/api/listings/${listingId}/photos`, { method: 'POST', headers, body: form })
+  const res = await fetch(`${API_BASE_URL}/api/listings/${listingId}/photos`, { method: 'POST', headers, body: form })
   if (!res.ok) {
     throw new Error(await friendlyErrorMessage(res))
   }

@@ -15,8 +15,12 @@ spring:
 
   datasource:
     # Defaults match the dedicated app user created by backend/sql/setup.sql -
-    # run that once in MySQL Workbench, no root password needed here.
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:real_estate}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    # run that once in MySQL Workbench, no root password needed here. No
+    # explicit useSSL/sslMode here - the driver's default (sslMode=PREFERRED)
+    # encrypts the connection when the server offers TLS (e.g. Aiven, which
+    # requires it) and falls back to plaintext for a local MySQL that has no
+    # certificate configured, so the same URL works in both places.
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:real_estate}?allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: ${DB_USER:realestate_app}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -51,16 +55,44 @@ management:
         include: health,info
 
 app:
-  # Seeds a few sample listings on first run so the UI isn't empty. Safe to
-  # leave on - the seeder checks the table is empty before inserting anything.
+  # Runs the account/listing seeder on first run (only when the users table is
+  # empty - see DemoDataSeeder). Safe to leave on everywhere: every account it
+  # creates comes from the env vars below, so it creates nothing at all if
+  # none of them are set.
   seed-demo-data: true
   # Seeds the Mysuru-corridor locality pages on first run - same "only if empty" rule.
   seed-localities: true
   # Folder where uploaded listing photos are stored, relative to where the jar
-  # runs unless given as an absolute path. Served back at /uploads/**.
+  # runs unless given as an absolute path. Served back at /uploads/**. Ignored
+  # when Cloudinary is configured below - photos go there instead.
   upload-dir: ${UPLOAD_DIR:uploads}
   jwt:
     # Must be set via the JWT_SECRET env var - no default, so the app
     # refuses to start with a known/guessable secret.
     secret: ${JWT_SECRET}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+  cors:
+    # Comma-separated origins the browser is allowed to call this API from.
+    # Set ALLOWED_ORIGINS to your Netlify URL in production.
+    allowed-origins: ${ALLOWED_ORIGINS:http://localhost:5173}
+  # The ONLY way an admin account gets created (see DemoDataSeeder) - there is
+  # no hardcoded admin password. Leave both unset to skip creating one.
+  admin:
+    email: ${ADMIN_EMAIL:}
+    password: ${ADMIN_PASSWORD:}
+  # Optional demo OWNER/TENANT accounts (with a couple of sample listings for
+  # the owner) - each is only created if its own email+password are both set.
+  # Never given a default password, so a public deployment that leaves these
+  # unset simply won't have them.
+  demo-owner:
+    email: ${DEMO_OWNER_EMAIL:}
+    password: ${DEMO_OWNER_PASSWORD:}
+  demo-tenant:
+    email: ${DEMO_TENANT_EMAIL:}
+    password: ${DEMO_TENANT_PASSWORD:}
+  # Optional: route uploaded photos to Cloudinary's free tier instead of local
+  # disk, so they survive a Render restart/redeploy (which wipes local disk).
+  # Leave both unset to keep saving to upload-dir above (fine for local dev).
+  cloudinary:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+    upload-preset: ${CLOUDINARY_UPLOAD_PRESET:}
