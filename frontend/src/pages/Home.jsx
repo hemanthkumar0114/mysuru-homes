@@ -1,7 +1,49 @@
 import { useEffect, useState } from 'react'
+import { fetchListings, fetchLocalities } from '../api/client'
+import { ArchPattern } from '../components/Patterns'
 import ListingCard from '../components/ListingCard'
 import LocalityLinks from '../components/LocalityLinks'
-import { fetchListings } from '../api/client'
+import { ListingGridSkeleton } from '../components/Skeleton'
+import { CameraIcon, KeyIcon, NoBrokerIcon, SearchIcon, ShieldIcon } from '../components/icons'
+
+const HOW_IT_WORKS = [
+  {
+    icon: <SearchIcon />,
+    title: 'Browse verified homes',
+    description:
+      'Filter by locality, rent and bedrooms to find rentals and PGs that are already field-checked.',
+  },
+  {
+    icon: <KeyIcon />,
+    title: 'Book a visit',
+    description:
+      'Tell us you’re interested or request a time to see the property in person, no broker in between.',
+  },
+  {
+    icon: <NoBrokerIcon />,
+    title: 'Move in, owner-direct',
+    description:
+      'Deal directly with the owner from enquiry to move-in. We just handle the introductions and verification.',
+  },
+]
+
+const TRUST_POINTS = [
+  {
+    icon: <ShieldIcon />,
+    title: 'Physically verified',
+    description: 'Our field team visits every property before it goes live, so listings match reality.',
+  },
+  {
+    icon: <CameraIcon />,
+    title: 'Real photos',
+    description: 'Photos are taken on-site by our team or the owner, never stock images.',
+  },
+  {
+    icon: <NoBrokerIcon />,
+    title: 'No broker fees',
+    description: 'Owners list directly. You talk to the person who actually owns the property.',
+  },
+]
 
 const EMPTY_FILTERS = {
   locality: '',
@@ -16,6 +58,22 @@ export default function Home() {
   const [filters, setFilters] = useState(EMPTY_FILTERS) // what is in the boxes right now
   const [applied, setApplied] = useState(EMPTY_FILTERS) // what we last searched for
   const [result, setResult] = useState({ key: null, listings: [], error: '' })
+  const [stats, setStats] = useState(null) // { listingCount, localityCount } or null
+
+  // Fetched once, independent of the filters above - the hero shows real,
+  // unfiltered totals ("N verified homes"), not the current search result count.
+  useEffect(() => {
+    let ignore = false
+    Promise.all([fetchListings({}), fetchLocalities()])
+      .then(([listings, localities]) => {
+        if (ignore) return
+        setStats({ listingCount: listings.length, localityCount: localities.length })
+      })
+      .catch(() => {})
+    return () => {
+      ignore = true
+    }
+  }, [])
 
   const hasActiveFilters = Object.values(filters).some(Boolean)
   const rangeInvalid =
@@ -74,12 +132,36 @@ export default function Home() {
   return (
     <>
       <section className="hero">
-        <div className="container center-text">
+        <div className="hero-pattern">
+          <ArchPattern id="hero-arches" />
+        </div>
+        <div className="container center-text hero-inner">
+          <span className="hero-eyebrow">
+            <ShieldIcon />
+            Field-verified listings across Mysuru
+          </span>
           <h1>Verified rentals in Mysuru, owner-direct.</h1>
           <p className="subtitle" style={{ margin: '0 auto' }}>
             Every listing is physically visited and photographed by our team.
             No broker spam.
           </p>
+
+          {stats && (
+            <div className="hero-stats">
+              <div className="hero-stat">
+                <strong>{stats.listingCount}</strong>
+                <span>{stats.listingCount === 1 ? 'live listing' : 'live listings'}</span>
+              </div>
+              <div className="hero-stat">
+                <strong>{stats.localityCount}</strong>
+                <span>{stats.localityCount === 1 ? 'locality covered' : 'localities covered'}</span>
+              </div>
+              <div className="hero-stat">
+                <strong>100%</strong>
+                <span>owner-direct</span>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -168,7 +250,7 @@ export default function Home() {
         {result.error ? (
           <p className="empty-state text-danger">{result.error}</p>
         ) : result.key === null ? (
-          <p className="empty-state">Loading listings…</p>
+          <ListingGridSkeleton />
         ) : (
           <>
             <p className="results-count" aria-live="polite">
@@ -203,6 +285,50 @@ export default function Home() {
           </>
         )}
       </div>
+
+      <section className="how-it-works">
+        <div className="container">
+          <div className="section-head">
+            <h2>How it works</h2>
+            <p className="text-muted">
+              From first search to move-in, three steps, no broker in the middle.
+            </p>
+          </div>
+          <div className="how-grid">
+            {HOW_IT_WORKS.map((step, index) => (
+              <div key={step.title} className="how-step">
+                <span className="how-step-num" aria-hidden="true">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <span className="how-step-icon">{step.icon}</span>
+                <h3>{step.title}</h3>
+                <p className="text-muted">{step.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="trust-section">
+        <div className="container">
+          <div className="section-head">
+            <h2>Every listing, physically verified</h2>
+            <p className="text-muted">
+              We don&apos;t just take an owner&apos;s word for it. Our field team visits, checks
+              and photographs each property before it goes live.
+            </p>
+          </div>
+          <div className="trust-grid">
+            {TRUST_POINTS.map((point) => (
+              <div key={point.title} className="trust-point">
+                <span className="trust-point-icon">{point.icon}</span>
+                <h3>{point.title}</h3>
+                <p className="text-muted">{point.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <div className="container page">
         <LocalityLinks />

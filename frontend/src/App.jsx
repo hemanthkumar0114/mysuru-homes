@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider } from './context/AuthContext'
@@ -19,61 +20,64 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/listings/:id" element={<ListingDetail />} />
-          <Route path="/localities/:slug" element={<LocalityPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route
-            path="/post-property"
-            element={
-              <ProtectedRoute role="OWNER">
-                <PostProperty />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/my-listings"
-            element={
-              <ProtectedRoute role="OWNER">
-                <MyListings />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/my-listings/:id"
-            element={
-              <ProtectedRoute role="OWNER">
-                <ListingActivity />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/my-visits"
-            element={
-              <ProtectedRoute>
-                <MyVisits />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute role="ADMIN">
-                <AdminModeration />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/visits"
-            element={
-              <ProtectedRoute role="ADMIN">
-                <AdminVisits />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+        <main className="app-main">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/listings/:id" element={<ListingDetail />} />
+            <Route path="/localities/:slug" element={<LocalityPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route
+              path="/post-property"
+              element={
+                <ProtectedRoute role="OWNER">
+                  <PostProperty />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/my-listings"
+              element={
+                <ProtectedRoute role="OWNER">
+                  <MyListings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/my-listings/:id"
+              element={
+                <ProtectedRoute role="OWNER">
+                  <ListingActivity />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/my-visits"
+              element={
+                <ProtectedRoute>
+                  <MyVisits />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute role="ADMIN">
+                  <AdminModeration />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/visits"
+              element={
+                <ProtectedRoute role="ADMIN">
+                  <AdminVisits />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </main>
+        <Footer />
       </BrowserRouter>
     </AuthProvider>
   )

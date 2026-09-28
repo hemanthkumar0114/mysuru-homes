@@ -60,3 +60,43 @@ export const ShieldIcon = () => (
     <path d="m9 12 2.2 2.2L15.5 10" />
   </Icon>
 )
+
+export const SearchIcon = () => (
+  <Icon>
+    <circle cx="11" cy="11" r="7" />
+    <path d="m21 21-4.3-4.3" />
+  </Icon>
+)
+
+export const CalendarIcon = () => (
+  <Icon>
+    <rect x="3.5" y="5" width="17" height="16" rx="2" />
+    <path d="M3.5 10h17" />
+    <path d="M8 3v4" />
+    <path d="M16 3v4" />
+  </Icon>
+)
+
+export const KeyIcon = () => (
+  <Icon>
+    <circle cx="8" cy="15" r="4.5" />
+    <path d="m11.5 11.5 8-8" />
+    <path d="m16.5 6.5 3 3" />
+    <path d="m14 9 3 3" />
+  </Icon>
+)
+
+export const CameraIcon = () => (
+  <Icon>
+    <path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z" />
+    <circle cx="12" cy="13.5" r="3.5" />
+  </Icon>
+)
+
+export const NoBrokerIcon = () => (
+  <Icon>
+    <circle cx="9" cy="8" r="3" />
+    <path d="M3.5 20c0-3.6 2.5-6 5.5-6s5.5 2.4 5.5 6" />
+    <path d="M15.5 4.5 20.5 19.5" strokeWidth="2.4" />
+  </Icon>
+)
