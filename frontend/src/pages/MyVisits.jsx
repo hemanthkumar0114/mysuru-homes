@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { cancelMyVisit, fetchMyVisits } from '../api/client'
-import { PinIcon } from '../components/icons'
+import { CalendarIcon, PinIcon } from '../components/icons'
+import { BlockSkeleton } from '../components/Skeleton'
 import VisitStatusBadge from '../components/VisitStatusBadge'
 import { isOpenVisit } from '../utils/format'
 import { formatIstDateTime } from '../utils/istTime'
@@ -61,12 +62,20 @@ export default function MyVisits() {
         </p>
       )}
 
-      {result === null && <p className="empty-state">Loading…</p>}
+      {result === null && (
+        <div className="stack" aria-hidden="true">
+          <BlockSkeleton lines={1} />
+          <BlockSkeleton lines={1} />
+        </div>
+      )}
 
       {result?.error && <p className="empty-state text-danger">{result.error}</p>}
 
       {result?.visits && visits.length === 0 && (
         <div className="card no-results">
+          <span className="empty-icon">
+            <CalendarIcon />
+          </span>
           <h2>No visit requests yet</h2>
           <p className="text-muted">
             Open any listing and use &ldquo;Book a visit&rdquo; to ask for a time to see it.

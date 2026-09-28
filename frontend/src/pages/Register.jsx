@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { CheckIcon } from '../components/icons'
+import { CameraIcon, CheckIcon, NoBrokerIcon, ShieldIcon } from '../components/icons'
 import PasswordField from '../components/PasswordField'
+import { ArchPattern } from '../components/Patterns'
 import { useAuth } from '../context/useAuth'
 
 const ROLES = [
@@ -35,15 +36,45 @@ export default function Register() {
   }
 
   return (
-    <div className="container page auth-page">
-      <div className="card auth-card">
-        <span className="brand-mark auth-mark">M</span>
-        <h1>Create your account</h1>
-        <p className="text-muted auth-subtitle">
-          Find verified rentals in Mysuru, or list your own property.
-        </p>
+    <div className="auth-page">
+      <div className="auth-split">
+        <div className="auth-panel">
+          <div className="auth-panel-pattern">
+            <ArchPattern id="register-arches" />
+          </div>
+          <div className="auth-panel-content">
+            <span className="brand-mark auth-mark">M</span>
+            <h2>Join Mysuru Homes</h2>
+            <p>
+              Whether you&apos;re looking for a home or listing one, everything here is
+              owner-direct and field-verified.
+            </p>
+            <ul className="auth-panel-points">
+              <li>
+                <ShieldIcon />
+                Every listing is physically checked before it goes live
+              </li>
+              <li>
+                <CameraIcon />
+                Real photos from the property, not stock images
+              </li>
+              <li>
+                <NoBrokerIcon />
+                No broker fees for tenants or owners
+              </li>
+            </ul>
+          </div>
+        </div>
 
-        <form className="auth-form" onSubmit={handleSubmit}>
+        <div className="auth-form-side">
+          <div className="card auth-card">
+            <span className="brand-mark auth-mark">M</span>
+            <h1>Create your account</h1>
+            <p className="text-muted auth-subtitle">
+              Find verified rentals in Mysuru, or list your own property.
+            </p>
+
+            <form className="auth-form" onSubmit={handleSubmit}>
           {error && (
             <div className="error-box" role="alert">
               {error}
@@ -110,11 +141,13 @@ export default function Register() {
           <button type="submit" className="btn btn-primary btn-block" disabled={submitting}>
             {submitting ? 'Creating account…' : 'Create account'}
           </button>
-        </form>
+            </form>
 
-        <p className="auth-switch text-muted">
-          Already have an account? <Link to="/login">Log in</Link>
-        </p>
+            <p className="auth-switch text-muted">
+              Already have an account? <Link to="/login">Log in</Link>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   )

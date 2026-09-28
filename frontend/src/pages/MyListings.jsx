@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { fetchMyListings } from '../api/client'
 import { HomeIcon, PinIcon } from '../components/icons'
+import { BlockSkeleton } from '../components/Skeleton'
 import { formatRent, pluralize, typeLabel } from '../utils/format'
 
 const STATUS = {
@@ -47,12 +48,21 @@ export default function MyListings() {
         </p>
       )}
 
-      {result === null && <p className="empty-state">Loading…</p>}
+      {result === null && (
+        <div className="stack" aria-hidden="true">
+          <BlockSkeleton lines={1} />
+          <BlockSkeleton lines={1} />
+          <BlockSkeleton lines={1} />
+        </div>
+      )}
 
       {result?.error && <p className="empty-state text-danger">{result.error}</p>}
 
       {result?.listings && listings.length === 0 && (
         <div className="card no-results">
+          <span className="empty-icon">
+            <HomeIcon />
+          </span>
           <h2>No properties yet</h2>
           <p className="text-muted">
             Post your first property and our field team will verify it before it goes live.

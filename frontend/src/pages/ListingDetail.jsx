@@ -9,6 +9,7 @@ import {
   PinIcon,
   ShieldIcon,
 } from '../components/icons'
+import { DetailSkeleton } from '../components/Skeleton'
 import { useAuth } from '../context/useAuth'
 import { bedroomsLabel, formatRent, typeLabel } from '../utils/format'
 import { isFutureIst, istInputToInstant, nowIstForInput } from '../utils/istTime'
@@ -76,7 +77,11 @@ export default function ListingDetail() {
   if (status === 'loading') {
     return (
       <div className="container page">
-        <p className="empty-state">Loading…</p>
+        <Link to="/" className="back-link">
+          <ArrowLeftIcon />
+          Back to listings
+        </Link>
+        <DetailSkeleton />
       </div>
     )
   }
@@ -89,6 +94,9 @@ export default function ListingDetail() {
           Back to listings
         </Link>
         <div className="card no-results">
+          <span className="empty-icon">
+            <HomeIcon />
+          </span>
           <h2>Listing not found</h2>
           <p className="text-muted">
             It may have been removed, or the link is wrong.

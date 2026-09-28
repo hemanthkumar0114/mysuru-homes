@@ -261,6 +261,9 @@ export default function Home() {
 
             {count === 0 && !loading ? (
               <div className="card no-results">
+                <span className="empty-icon">
+                  <SearchIcon />
+                </span>
                 <h2>
                   {hasActiveFilters ? 'No listings match your filters' : 'No live listings yet'}
                 </h2>

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { cancelVisitAsAdmin, confirmVisit, fetchAdminVisits } from '../api/client'
+import { CalendarIcon } from '../components/icons'
+import { BlockSkeleton } from '../components/Skeleton'
 import VisitStatusBadge from '../components/VisitStatusBadge'
 import { isOpenVisit } from '../utils/format'
 import { formatIstDateTime } from '../utils/istTime'
@@ -88,12 +90,20 @@ export default function AdminVisits() {
         </p>
       )}
 
-      {loading && <p className="empty-state">Loading…</p>}
+      {loading && (
+        <div className="stack" aria-hidden="true">
+          <BlockSkeleton />
+          <BlockSkeleton />
+        </div>
+      )}
 
       {!loading && result.error && <p className="empty-state text-danger">{result.error}</p>}
 
       {!loading && result.visits && visits.length === 0 && (
         <div className="card no-results">
+          <span className="empty-icon">
+            <CalendarIcon />
+          </span>
           <h2>No visit requests here</h2>
           <p className="text-muted">Nothing matches this filter right now.</p>
         </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchPendingListings, verifyListing } from '../api/client'
 import { CheckIcon } from '../components/icons'
+import { BlockSkeleton } from '../components/Skeleton'
 import { bedroomsLabel, formatRent, typeLabel } from '../utils/format'
 import { formatIstDate } from '../utils/istTime'
 
@@ -70,7 +71,12 @@ export default function AdminModeration() {
         </p>
       )}
 
-      {result === null && <p className="empty-state">Loading…</p>}
+      {result === null && (
+        <div className="stack" aria-hidden="true">
+          <BlockSkeleton />
+          <BlockSkeleton />
+        </div>
+      )}
 
       {result?.error && (
         <div className="card no-results">
