@@ -78,6 +78,7 @@ export default function Footer() {
         <div className="footer-bottom text-muted">
           <span>&copy; {new Date().getFullYear()} Mysuru Homes. Owner-direct, always.</span>
           <span>Made for renters and owners in Mysuru.</span>
+          <span className="badge badge-muted">Demo project: sample listings, not real rentals</span>
         </div>
       </div>
     </footer>
