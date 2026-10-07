@@ -22,4 +22,5 @@ COPY --from=build /app/target/*.jar app.jar
 # Render (and most PaaS hosts) inject PORT at runtime; application.yml already
 # reads it via server.port: ${PORT:8080}. 8080 here is just the local default.
 EXPOSE 8080
+ENV SPRING_PROFILES_ACTIVE=prod
 ENTRYPOINT ["java", "-jar", "app.jar"]

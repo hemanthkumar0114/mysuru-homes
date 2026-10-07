@@ -48,7 +48,39 @@ class AuthTests extends ApiTestSupport {
                         ErrorBody.class);
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(res.getBody().message()).contains("at least 6 characters");
+        assertThat(res.getBody().message()).contains("between 8 and 72 characters");
+    }
+
+    @Test
+    void registerRejectsAPasswordLongerThan72Characters() {
+        ResponseEntity<ErrorBody> res =
+                rest.postForEntity(
+                        "/api/auth/register",
+                        Map.of(
+                                "name", "Long Pw",
+                                "email", unique("longpw") + "@test.local",
+                                "password", "a".repeat(73),
+                                "role", "TENANT"),
+                        ErrorBody.class);
+
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(res.getBody().message()).contains("between 8 and 72 characters");
+    }
+
+    @Test
+    void registerRejectsAPasswordLongerThan72Bytes() {
+        ResponseEntity<ErrorBody> res =
+                rest.postForEntity(
+                        "/api/auth/register",
+                        Map.of(
+                                "name", "Wide Pw",
+                                "email", unique("widepw") + "@test.local",
+                                "password", "é".repeat(40),
+                                "role", "TENANT"),
+                        ErrorBody.class);
+
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(res.getBody().message()).contains("between 8 and 72 characters");
     }
 
     @Test
@@ -62,7 +94,63 @@ class AuthTests extends ApiTestSupport {
                         ErrorBody.class);
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-        assertThat(res.getBody().message()).contains(first.email());
+        assertThat(res.getBody().message()).contains("already exists").doesNotContain(first.email());
+    }
+
+    @Test
+    void anAccountIsLockedAfterRepeatedFailedLogins() {
+        Registered user = registerUser(UserRole.TENANT);
+        Registered other = registerUser(UserRole.TENANT);
+        Map<String, String> wrong = Map.of("email", user.email(), "password", "wrong-password");
+
+        for (int attempt = 0; attempt < 5; attempt++) {
+            ResponseEntity<ErrorBody> failed = rest.postForEntity("/api/auth/login", wrong, ErrorBody.class);
+            assertThat(failed.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        }
+
+        ResponseEntity<ErrorBody> locked =
+                rest.postForEntity(
+                        "/api/auth/login", Map.of("email", user.email(), "password", PASSWORD), ErrorBody.class);
+        assertThat(locked.getStatusCode()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
+        assertThat(locked.getBody().message()).contains("Too many failed login attempts");
+
+        ResponseEntity<AuthResponse> unaffected =
+                rest.postForEntity(
+                        "/api/auth/login", Map.of("email", other.email(), "password", PASSWORD), AuthResponse.class);
+        assertThat(unaffected.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    void aSuccessfulLoginClearsEarlierFailures() {
+        Registered user = registerUser(UserRole.TENANT);
+
+        for (int attempt = 0; attempt < 4; attempt++) {
+            rest.postForEntity(
+                    "/api/auth/login", Map.of("email", user.email(), "password", "wrong-password"), ErrorBody.class);
+        }
+        ResponseEntity<AuthResponse> success =
+                rest.postForEntity(
+                        "/api/auth/login", Map.of("email", user.email(), "password", PASSWORD), AuthResponse.class);
+        assertThat(success.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        for (int attempt = 0; attempt < 4; attempt++) {
+            rest.postForEntity(
+                    "/api/auth/login", Map.of("email", user.email(), "password", "wrong-password"), ErrorBody.class);
+        }
+        ResponseEntity<AuthResponse> stillAllowed =
+                rest.postForEntity(
+                        "/api/auth/login", Map.of("email", user.email(), "password", PASSWORD), AuthResponse.class);
+        assertThat(stillAllowed.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    void anUnknownRouteGetsAGenericNotFoundMessage() {
+        String token = registerUser(UserRole.TENANT).token();
+
+        ResponseEntity<ErrorBody> res = get("/api/no-such-endpoint", token, ErrorBody.class);
+
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(res.getBody().message()).isEqualTo("We couldn't find what you were looking for.");
     }
 
     @Test

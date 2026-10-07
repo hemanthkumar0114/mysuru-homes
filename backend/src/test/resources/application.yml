@@ -7,7 +7,7 @@ spring:
     name: api-test
   web:
     error:
-      include-message: always
+      include-message: never
       include-stacktrace: never
       include-binding-errors: never
   datasource:

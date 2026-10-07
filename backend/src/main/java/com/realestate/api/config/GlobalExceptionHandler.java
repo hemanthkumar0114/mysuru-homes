@@ -2,14 +2,23 @@ package com.realestate.api.config;
 
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.util.StringUtils;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.core.JacksonException;
 
 /**
@@ -27,7 +36,7 @@ public class GlobalExceptionHandler {
     /**
      * "must not be blank" on field "title" -> "Title must not be blank".
      * A message that already starts with a capital letter is a full sentence
-     * (e.g. "Password must be at least 6 characters") and is used as it is.
+     * (e.g. "Password must be between 8 and 72 characters") and is used as it is.
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException ex) {
@@ -79,9 +88,58 @@ public class GlobalExceptionHandler {
         return badRequest("That upload is too large. Each photo must be 3MB or smaller.");
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
-        return badRequest(ex.getMessage());
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Map<String, String>> handleResponseStatus(ResponseStatusException ex) {
+        String message = StringUtils.hasText(ex.getReason()) ? ex.getReason() : defaultMessage(ex.getStatusCode());
+        return ResponseEntity.status(ex.getStatusCode()).headers(ex.getHeaders()).body(Map.of("message", message));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleDataIntegrity(DataIntegrityViolationException ex) {
+        log.warn("Data integrity violation: {}", ex.getMostSpecificCause().getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("message", "That conflicts with something that already exists. Please check and try again."));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleUnexpected(Exception ex) throws Exception {
+        if (ex instanceof AccessDeniedException || ex instanceof AuthenticationException) {
+            throw ex;
+        }
+
+        ResponseStatus annotated = AnnotatedElementUtils.findMergedAnnotation(ex.getClass(), ResponseStatus.class);
+        if (annotated != null) {
+            HttpStatus status = annotated.code();
+            String message = StringUtils.hasText(ex.getMessage()) ? ex.getMessage() : defaultMessage(status);
+            return ResponseEntity.status(status).body(Map.of("message", message));
+        }
+
+        if (ex instanceof ErrorResponse errorResponse) {
+            HttpStatusCode status = errorResponse.getStatusCode();
+            return ResponseEntity.status(status)
+                    .headers(errorResponse.getHeaders())
+                    .body(Map.of("message", defaultMessage(status)));
+        }
+
+        log.error("Unhandled exception", ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", defaultMessage(HttpStatus.INTERNAL_SERVER_ERROR)));
+    }
+
+    private static String defaultMessage(HttpStatusCode status) {
+        return switch (status.value()) {
+            case 400 -> "We couldn't understand that request. Please check what you entered and try again.";
+            case 401 -> "Please log in to continue.";
+            case 403 -> "You don't have permission to do that.";
+            case 404 -> "We couldn't find what you were looking for.";
+            case 405 -> "That action isn't supported.";
+            case 409 -> "That conflicts with something that already exists.";
+            case 415 -> "That kind of data isn't supported.";
+            case 429 -> "Too many attempts. Please wait a few minutes and try again.";
+            default -> status.is5xxServerError()
+                    ? "Something went wrong on our side. Please try again."
+                    : "We couldn't complete that request.";
+        };
     }
 
     private static ResponseEntity<Map<String, String>> badRequest(String message) {

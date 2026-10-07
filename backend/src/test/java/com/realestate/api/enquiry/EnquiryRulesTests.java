@@ -1,11 +1,17 @@
 package com.realestate.api.enquiry;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.realestate.api.listing.Listing;
+import com.realestate.api.listing.ListingRepository;
 import com.realestate.api.support.ApiTestSupport;
+import com.realestate.api.user.User;
 import com.realestate.api.user.UserRole;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -13,6 +19,28 @@ import org.springframework.http.ResponseEntity;
 class EnquiryRulesTests extends ApiTestSupport {
 
     private record EnquiryRequest(String listingId) {}
+
+    @Autowired
+    private EnquiryRepository enquiryRepository;
+
+    @Autowired
+    private ListingRepository listingRepository;
+
+    @Test
+    void theDatabaseItselfRejectsADuplicateEnquiry() {
+        String owner = registerUser(UserRole.OWNER).token();
+        String admin = registerAdmin().token();
+        Registered tenant = registerUser(UserRole.TENANT);
+        String liveId = createLiveListing(owner, admin, Map.of());
+        Listing listing = listingRepository.findById(liveId).orElseThrow();
+        User tenantUser = userRepository.findById(tenant.id()).orElseThrow();
+
+        enquiryRepository.save(Enquiry.builder().listing(listing).tenant(tenantUser).build());
+
+        assertThatThrownBy(
+                        () -> enquiryRepository.save(Enquiry.builder().listing(listing).tenant(tenantUser).build()))
+                .isInstanceOf(DataIntegrityViolationException.class);
+    }
 
     @Test
     void enquiringOnADraftListingIsRejected() {
