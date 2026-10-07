@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,7 +20,12 @@ import lombok.Setter;
 
 /** One tap of "I'm interested" from a tenant on a listing - feeds the Phase 1 gate metric. */
 @Entity
-@Table(name = "enquiries")
+@Table(
+        name = "enquiries",
+        uniqueConstraints =
+                @UniqueConstraint(
+                        name = "uk_enquiry_listing_tenant",
+                        columnNames = {"listing_id", "tenant_id"}))
 @Getter
 @Setter
 @NoArgsConstructor

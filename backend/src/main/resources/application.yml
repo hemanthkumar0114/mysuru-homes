@@ -4,10 +4,10 @@ spring:
 
   web:
     error:
-      # So {"message": "..."} on our custom @ResponseStatus exceptions
-      # (EmailAlreadyRegisteredException, InvalidCredentialsException, etc.)
-      # actually reaches the frontend's error boxes instead of being stripped.
-      include-message: always
+      # Exception messages are never exposed by Boot's default error page.
+      # GlobalExceptionHandler writes the {"message": "..."} body itself, so
+      # only messages we chose for the user ever reach the browser.
+      include-message: never
       # Dev tools switch these on in development; never send Java stack
       # traces or internal field/binding details to the browser.
       include-stacktrace: never
@@ -40,7 +40,7 @@ spring:
 server:
   port: ${PORT:8080}
   error:
-    include-message: always
+    include-message: never
 
 spring.servlet.multipart:
   # A bit above the 3MB-per-photo app limit (see ListingPhotoController) so a

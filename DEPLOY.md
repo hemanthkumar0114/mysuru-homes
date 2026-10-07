@@ -265,6 +265,7 @@ Now that you have your real Netlify URL:
 | `PORT` | No (Render sets it) | HTTP port the app listens on |
 | `JWT_EXPIRATION_MS` | No (default 24h) | Token lifetime |
 | `UPLOAD_DIR` | No | Local disk folder for photos when Cloudinary isn't configured |
+| `SPRING_PROFILES_ACTIVE` | No (the Docker image sets `prod`) | The `prod` profile forces an encrypted database connection (`sslMode=REQUIRED`) and fails to start rather than falling back to plaintext |
 
 **Frontend (Netlify)**
 

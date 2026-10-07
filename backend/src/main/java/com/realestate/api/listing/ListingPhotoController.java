@@ -1,6 +1,7 @@
 package com.realestate.api.listing;
 
 import com.realestate.api.security.AuthenticatedUser;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -45,15 +46,14 @@ public class ListingPhotoController {
                             + existing + " already uploaded).");
         }
 
-        int nextOrder = (int) existing;
-        return files.stream()
-                .map(
-                        file -> {
-                            String url = photoStorageService.store(id, file);
-                            listingPhotoRepository.save(
-                                    ListingPhoto.builder().listing(listing).url(url).sortOrder(nextOrder).build());
-                            return url;
-                        })
-                .toList();
+        List<String> urls = new ArrayList<>();
+        int sortOrder = (int) existing;
+        for (MultipartFile file : files) {
+            String url = photoStorageService.store(id, file);
+            listingPhotoRepository.save(
+                    ListingPhoto.builder().listing(listing).url(url).sortOrder(sortOrder++).build());
+            urls.add(url);
+        }
+        return urls;
     }
 }

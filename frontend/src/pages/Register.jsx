@@ -134,8 +134,8 @@ export default function Register() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="new-password"
-            minLength={6}
-            hint="At least 6 characters."
+            minLength={8}
+            hint="8 to 72 characters."
           />
 
           <button type="submit" className="btn btn-primary btn-block" disabled={submitting}>

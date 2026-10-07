@@ -10,6 +10,7 @@ import com.realestate.api.user.UserRepository;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,8 +32,9 @@ public class EnquiryController {
     /**
      * Any logged-in user can enquire - the tenant is taken from the JWT, not the request body.
      * Rules: the listing must be LIVE, and each person can enquire once per listing.
-     * (Checked in code rather than with a unique DB constraint because the table already
-     * holds duplicate rows from before this rule existed.)
+     * The unique constraint on (listing, tenant) is the real guarantee; the check below just
+     * gives the friendly answer in the common case. Run sql/dedupe-enquiries.sql once on a
+     * database that already holds duplicates, or the constraint cannot be created.
      */
     @PostMapping("/api/enquiries")
     @ResponseStatus(HttpStatus.CREATED)
@@ -59,6 +61,11 @@ public class EnquiryController {
                         .findById(principal.id())
                         .orElseThrow(() -> new IllegalStateException("Authenticated user vanished: " + principal.id()));
 
-        enquiryRepository.save(Enquiry.builder().listing(listing).tenant(tenant).build());
+        try {
+            enquiryRepository.save(Enquiry.builder().listing(listing).tenant(tenant).build());
+        } catch (DataIntegrityViolationException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "You've already told the owner you're interested in this property.");
+        }
     }
 }
