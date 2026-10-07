@@ -55,8 +55,8 @@ public class PhotoStorageService {
         this.objectMapper = objectMapper;
     }
 
-    /** Validates one file and saves it. Returns its public URL. */
-    public String store(String listingId, MultipartFile file) {
+    /** Checks one file without saving it. Returns the file extension its type maps to. */
+    public String validate(MultipartFile file) {
         if (file.isEmpty()) {
             throw new PhotoStorageException("One of the selected files was empty.");
         }
@@ -67,6 +67,12 @@ public class PhotoStorageService {
         if (extension == null) {
             throw new PhotoStorageException("Photos must be JPEG, PNG or WebP images.");
         }
+        return extension;
+    }
+
+    /** Validates one file and saves it. Returns its public URL. */
+    public String store(String listingId, MultipartFile file) {
+        String extension = validate(file);
 
         if (usesCloudinary()) {
             return storeInCloudinary(listingId, file, extension);
