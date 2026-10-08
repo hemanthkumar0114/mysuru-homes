@@ -15,9 +15,12 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password:
+  flyway:
+    placeholders:
+      long_text_type: CLOB
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     show-sql: false
 
 app:

@@ -69,9 +69,9 @@ for a "paused" state and resume it there.
 
 You do **not** need to run `backend/sql/setup.sql` against Aiven — that
 script exists only to create a restricted local MySQL user for development.
-On Aiven, use the `avnadmin` user Aiven already gave you; the app's
-`ddl-auto: update` setting will create all the tables automatically the
-first time it connects.
+On Aiven, use the `avnadmin` user Aiven already gave you; Flyway creates
+all the tables from `backend/src/main/resources/db/migration` the first
+time the app connects to an empty database.
 
 ---
 
@@ -289,7 +289,7 @@ and Netlify's dashboards, never in this file or in chat.
 - **Aiven free plan** — capped resources (1 GB RAM/disk, ~76 connections),
   no SLA, and Aiven may pause a service that's been completely idle for a
   long time. Fine for a portfolio demo; not meant for real traffic.
-- **No database migrations** — schema is still managed by Hibernate's
-  `ddl-auto: update` (see [README.md](README.md#known-limitations)); this
-  is fine for a single app instance pointed at one database, which is
-  exactly this setup.
+- **Schema changes go through Flyway** — add a new
+  `V2__what_changed.sql` file in `backend/src/main/resources/db/migration`;
+  never edit a migration that has already run. An existing database with no
+  Flyway history is baselined at V1 on first start.

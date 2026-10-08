@@ -152,8 +152,8 @@ cd backend
 ./mvnw spring-boot:run
 ```
 
-Runs on `http://localhost:8080`. Tables are created automatically on first
-run (`ddl-auto: update`), and demo accounts + a few demo listings are
+Runs on `http://localhost:8080`. Tables are created on first run by Flyway
+migrations (`backend/src/main/resources/db/migration`), and demo accounts + a few demo listings are
 seeded so the app isn't empty (see [Demo accounts](#demo-accounts)).
 Locality pages are seeded the same way.
 
@@ -267,9 +267,6 @@ _Add screenshots here before sharing this repo — e.g. drop image files into
 
 - Phone-OTP login is out of scope (needs a paid SMS provider like
   MSG91/Twilio) — email/password only for now.
-- Schema is managed by Hibernate's `ddl-auto: update`, which is fine for a
-  single local database but should be replaced with Flyway/Liquibase
-  migrations before this ever points at a shared or production database.
 - Listing photos are stored on local disk by default (see
   `PhotoStorageService`) — fine for one server, but a host with ephemeral
   disk (e.g. Render's free tier) loses them on every restart. Set
