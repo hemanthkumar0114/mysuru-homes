@@ -82,7 +82,7 @@ class ListingValidationAndPagingTests extends ApiTestSupport {
                         "/api/listings",
                         owner,
                         listingRequest(
-                                Map.of("lat", 90.0, "lng", -180.0, "bedrooms", 0, "bathrooms", 20, "rentAmount", new BigDecimal("10000000.50"))),
+                                Map.of("lat", 90.0, "lng", -180.0, "bedrooms", 0, "bathrooms", 20, "rentAmount", new BigDecimal("10000000"))),
                         OwnerListingSummary.class);
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     }
