@@ -35,9 +35,11 @@ spring:
 
   jpa:
     hibernate:
-      # Flyway owns the schema (src/main/resources/db/migration). Hibernate only
-      # checks at startup that the tables match the entities and never changes them.
-      ddl-auto: validate
+      # Flyway owns the schema (src/main/resources/db/migration); Hibernate never
+      # changes it. The test suite runs with ddl-auto: validate, so a migration that
+      # doesn't match the entities fails the tests instead of failing a deploy.
+      # A schema change = a new file V2__what_changed.sql, never an edit to an old one.
+      ddl-auto: none
     database-platform: org.hibernate.dialect.MySQLDialect
     open-in-view: false
     show-sql: false
