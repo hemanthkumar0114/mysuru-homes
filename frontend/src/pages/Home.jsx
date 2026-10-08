@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { fetchListings, fetchLocalities } from '../api/client'
+import { fetchListings, fetchListingTotal, fetchLocalities } from '../api/client'
 import { ArchPattern } from '../components/Patterns'
 import ListingCard from '../components/ListingCard'
 import LocalityLinks from '../components/LocalityLinks'
@@ -64,10 +64,10 @@ export default function Home() {
   // unfiltered totals ("N verified homes"), not the current search result count.
   useEffect(() => {
     let ignore = false
-    Promise.all([fetchListings({}), fetchLocalities()])
-      .then(([listings, localities]) => {
+    Promise.all([fetchListingTotal(), fetchLocalities()])
+      .then(([listingCount, localities]) => {
         if (ignore) return
-        setStats({ listingCount: listings.length, localityCount: localities.length })
+        setStats({ listingCount, localityCount: localities.length })
       })
       .catch(() => {})
     return () => {

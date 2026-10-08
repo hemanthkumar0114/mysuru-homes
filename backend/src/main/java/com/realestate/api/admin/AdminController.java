@@ -1,11 +1,13 @@
 package com.realestate.api.admin;
 
+import com.realestate.api.common.Paging;
 import com.realestate.api.security.AuthenticatedUser;
 import com.realestate.api.visit.AdminVisitView;
 import com.realestate.api.visit.VisitBookingService;
 import com.realestate.api.visit.VisitStatus;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,9 +25,11 @@ public class AdminController {
     private final AdminListingService adminListingService;
     private final VisitBookingService visitBookingService;
 
+    /** Oldest first. ?page=0&size=50 pages through it; the total is in the X-Total-Count header. */
     @GetMapping("/listings/pending")
-    public List<AdminListingSummary> pending() {
-        return adminListingService.pending();
+    public ResponseEntity<List<AdminListingSummary>> pending(
+            @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size) {
+        return Paging.response(adminListingService.pending(page, size));
     }
 
     @PostMapping("/listings/{id}/verify")

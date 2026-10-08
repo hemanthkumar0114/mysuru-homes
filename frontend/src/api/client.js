@@ -81,6 +81,17 @@ export function fetchListings(params = {}) {
   return request(`/api/listings${qs ? `?${qs}` : ''}`)
 }
 
+export async function fetchListingTotal() {
+  const res = await fetch(`${API_BASE_URL}/api/listings?size=1`)
+  if (!res.ok) {
+    throw new Error(await friendlyErrorMessage(res))
+  }
+  const header = Number(res.headers.get('X-Total-Count'))
+  if (Number.isFinite(header) && res.headers.has('X-Total-Count')) return header
+  const body = await res.json()
+  return body.length
+}
+
 export function fetchListing(id) {
   return request(`/api/listings/${id}`)
 }

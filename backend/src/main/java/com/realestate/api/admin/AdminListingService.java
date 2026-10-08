@@ -1,5 +1,6 @@
 package com.realestate.api.admin;
 
+import com.realestate.api.common.Paging;
 import com.realestate.api.listing.Listing;
 import com.realestate.api.listing.ListingNotFoundException;
 import com.realestate.api.listing.ListingRepository;
@@ -7,8 +8,10 @@ import com.realestate.api.listing.ListingStatus;
 import com.realestate.api.user.User;
 import com.realestate.api.user.UserRepository;
 import java.time.Instant;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,8 +23,9 @@ public class AdminListingService {
     private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
-    public List<AdminListingSummary> pending() {
-        return listingRepository.findByStatus(ListingStatus.DRAFT).stream().map(AdminListingSummary::from).toList();
+    public Page<AdminListingSummary> pending(Integer page, Integer size) {
+        Pageable pageable = Paging.of(page, size, Sort.by("createdAt").ascending());
+        return listingRepository.findByStatus(ListingStatus.DRAFT, pageable).map(AdminListingSummary::from);
     }
 
     /** Field team has physically visited and confirmed the listing - make it live. */
