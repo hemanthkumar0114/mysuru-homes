@@ -25,11 +25,19 @@ spring:
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  flyway:
+    # A database that already has tables but no Flyway history (the live Aiven
+    # database, or a local one built by the old ddl-auto: update) is marked as
+    # already being at version 1 instead of running V1 on top of it. An empty
+    # database runs every migration from V1.
+    baseline-on-migrate: true
+    baseline-version: 1
+
   jpa:
     hibernate:
-      # create/update the schema automatically - fine for local dev, switch to
-      # Flyway/Liquibase migrations before this touches a shared database.
-      ddl-auto: update
+      # Flyway owns the schema (src/main/resources/db/migration). Hibernate only
+      # checks at startup that the tables match the entities and never changes them.
+      ddl-auto: validate
     database-platform: org.hibernate.dialect.MySQLDialect
     open-in-view: false
     show-sql: false
