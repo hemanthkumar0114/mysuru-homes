@@ -1,11 +1,13 @@
 package com.realestate.api.listing;
 
+import com.realestate.api.common.Paging;
 import com.realestate.api.security.AuthenticatedUser;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,9 +31,11 @@ public class ListingController {
      * GET /api/listings?bedrooms=2                -> at least 2 bedrooms
      * GET /api/listings?lat=..&lng=..&radiusKm=5  -> geo-radius search
      * Every filter is optional and they can be combined.
+     * Paging: ?page=0&size=50 (size 1 to 100). The body is a plain array; the total number
+     * of matches is in the X-Total-Count response header.
      */
     @GetMapping("/api/listings")
-    public List<ListingSummary> search(
+    public ResponseEntity<List<ListingSummary>> search(
             @RequestParam(required = false) String locality,
             @RequestParam(required = false) ListingType type,
             @RequestParam(required = false) BigDecimal minRent,
@@ -39,8 +43,11 @@ public class ListingController {
             @RequestParam(required = false) Integer bedrooms,
             @RequestParam(required = false) Double lat,
             @RequestParam(required = false) Double lng,
-            @RequestParam(required = false, defaultValue = "5") Double radiusKm) {
-        return listingService.search(locality, type, minRent, maxRent, bedrooms, lat, lng, radiusKm);
+            @RequestParam(required = false, defaultValue = "5") Double radiusKm,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
+        return Paging.response(
+                listingService.search(locality, type, minRent, maxRent, bedrooms, lat, lng, radiusKm, page, size));
     }
 
     /**
