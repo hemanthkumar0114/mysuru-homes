@@ -75,6 +75,6 @@ CREATE TABLE locality_pages (
     slug          VARCHAR(255) NOT NULL,
     avg_rent      DECIMAL(38,2),
     locality_name VARCHAR(255) NOT NULL,
-    seo_content   LONGTEXT,
+    seo_content   ${long_text_type},
     CONSTRAINT pk_locality_pages PRIMARY KEY (slug)
 );

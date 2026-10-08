@@ -32,6 +32,8 @@ spring:
     # database runs every migration from V1.
     baseline-on-migrate: true
     baseline-version: 1
+    placeholders:
+      long_text_type: LONGTEXT
 
   jpa:
     hibernate:
